@@ -73,7 +73,7 @@
       "guest": "Guest",
       "free": "Free",
       "pro": "Pro",
-      "pro-early-bird": "🐤 Early Bird - Pro 50% OFF",
+      "pro-early-bird": " Early Bird - Pro 50% OFF",
       "signup-for-more": "Sign up for more",
       "upgrade": "Upgrade",
       "renew": "Renew",
@@ -110,10 +110,19 @@
       "find-my-key": "Find my key",
       "endpoint-description": "Optional endpoint pointing to your own compatible server or gateway."
     },
+    "ai-provider": "AI Provider",
+    "providers": {
+      "openai": "OpenAI",
+      "dashscope": "Tongyi Qianwen (External)",
+      "qwen": "Tongyi Qianwen (Internal)"
+    },
     "dashscope": {
       "api-key": "DashScope API Key",
       "api-key-placeholder": "Enter your DashScope API Key",
       "model": "Model"
+    },
+    "qwen": {
+      "description": "Internal Tongyi Qianwen service is configured, no additional settings required"
     },
     "data": {
       "self": "Data",
@@ -127,7 +136,7 @@
   "banner": {
     "data-storage": "Connection settings are stored in your local browser",
     "non-select-sql-warning": "The current statement may be non-SELECT SQL, which will result in a database schema or data change. Make sure you know what you are doing.",
-    "product-hunt": "🚀🚀🚀 We just launched on Product Hunt, please give us a vote! 🚀🚀🚀",
+    "product-hunt": " We just launched on Product Hunt, please give us a vote! ",
     "quota-overflow": "We are running out of quota. You can still supply your own OpenAI API key to continue using.",
     "use-my-key": "Use my own key"
   },

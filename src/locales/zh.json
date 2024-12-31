@@ -104,7 +104,8 @@
     "ai-provider": "AI 提供商",
     "providers": {
       "openai": "OpenAI",
-      "dashscope": "通义千问"
+      "dashscope": "通义千问（外网）",
+      "qwen": "通义千问（内网）"
     },
     "openai-api-configuration": {
       "self": "OpenAI API 配置",
@@ -115,14 +116,17 @@
       "key-description": "一旦您提供了自己的 key，额度就不受限制了。",
       "endpoint-description": "可选的 endpoint 指向接口兼容的服务器或者网关。"
     },
-    "data": {
-      "self": "数据",
-      "clear-all-data": "清除所有数据"
-    },
     "dashscope": {
       "api-key": "通义千问 API Key",
       "api-key-placeholder": "请输入通义千问 API Key",
       "model": "模型"
+    },
+    "qwen": {
+      "description": "内网通义千问服务已配置，无需额外设置"
+    },
+    "data": {
+      "self": "数据",
+      "clear-all-data": "清除所有数据"
     }
   },
   "social": {

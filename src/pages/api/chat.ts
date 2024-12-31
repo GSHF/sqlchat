@@ -30,6 +30,21 @@ const handler = async (req: NextRequest) => {
   const reqBody = await req.json();
   const provider = req.headers.get("x-provider") || "openai";
 
+  // 添加内网通义千问的支持
+  if (provider === "qwen") {
+    const response = await fetch(new URL("/api/qwen", req.url).toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reqBody),
+    });
+
+    return new Response(response.body, {
+      headers: response.headers,
+    });
+  }
+
   if (provider === "dashscope") {
     const apiKey = req.headers.get("x-dashscope-key");
     if (!apiKey) {

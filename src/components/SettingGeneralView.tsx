@@ -11,7 +11,9 @@ import LocaleSelector from "./LocaleSelector";
 import ThemeSelector from "./ThemeSelector";
 import OpenAIApiConfigView from "./OpenAIApiConfigView";
 import { useSettingStore } from "@/store";
+import { Setting } from "@/types";
 import DashScopeApiConfigView from "./DashScopeApiConfigView";
+import QwenApiConfigView from "./QwenApiConfigView";
 
 const SettingGeneralView = () => {
   const { t } = useTranslation();
@@ -64,9 +66,10 @@ const SettingGeneralView = () => {
           <span>{t("setting.ai-provider")}</span>
           <select
             value={settingStore.setting.activeProvider}
-            onChange={(e) => settingStore.setActiveProvider(e.target.value as "openai" | "dashscope")}
+            onChange={(e) => settingStore.setActiveProvider(e.target.value as Setting["activeProvider"])}
             className="mt-2 block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
           >
+            <option value="qwen">{t("setting.providers.qwen")}</option>
             <option value="openai">{t("setting.providers.openai")}</option>
             <option value="dashscope">{t("setting.providers.dashscope")}</option>
           </select>
@@ -75,6 +78,7 @@ const SettingGeneralView = () => {
 
       {settingStore.setting.activeProvider === "openai" && <OpenAIApiConfigView />}
       {settingStore.setting.activeProvider === "dashscope" && <DashScopeApiConfigView />}
+      {settingStore.setting.activeProvider === "qwen" && <QwenApiConfigView />}
 
       <div className="w-full border border-gray-200 dark:border-zinc-700 p-4 rounded-lg space-y-2">
         <div className="w-full flex flex-row justify-between items-center gap-2">

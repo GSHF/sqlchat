@@ -199,7 +199,12 @@ const ConversationView = () => {
     if (session?.user.id) {
       requestHeaders["Authorization"] = `Bearer ${session?.user.id}`;
     }
-    if (settingStore.setting.openAIApiConfig?.key) {
+    if (settingStore.setting.activeProvider === "qwen") {
+      requestHeaders["x-provider"] = "qwen";
+      requestHeaders["x-qwen-endpoint"] = settingStore.setting.qwenApiConfig.endpoint;
+      requestHeaders["x-qwen-app-id"] = settingStore.setting.qwenApiConfig.appId;
+      requestHeaders["x-qwen-secret-key"] = settingStore.setting.qwenApiConfig.secretKey;
+    } else if (settingStore.setting.openAIApiConfig?.key) {
       requestHeaders["x-provider"] = "openai";
       requestHeaders["x-openai-key"] = settingStore.setting.openAIApiConfig.key;
       if (settingStore.setting.openAIApiConfig.endpoint) {

@@ -13,10 +13,17 @@ export interface DashScopeApiConfig {
   model: string;
 }
 
+export interface QwenApiConfig {
+  appId: string;
+  secretKey: string;
+  endpoint?: string;
+}
+
 export interface Setting {
   locale: Locale;
   theme: Theme;
   openAIApiConfig: OpenAIApiConfig;
   dashScopeApiConfig: DashScopeApiConfig;
-  activeProvider: "openai" | "dashscope";
+  activeProvider: "openai" | "dashscope" | "qwen";
+  qwenApiConfig: QwenApiConfig;
 }

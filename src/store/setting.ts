@@ -1,13 +1,13 @@
 import { merge } from "lodash-es";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Setting, DashScopeApiConfig } from "@/types";
+import { Setting, DashScopeApiConfig, QwenApiConfig } from "@/types";
 
 const getDefaultSetting = (): Setting => {
   return {
     locale: "en",
     theme: "system",
-    activeProvider: "openai",
+    activeProvider: "qwen", // 默认使用内网通义千问
     openAIApiConfig: {
       key: "",
       endpoint: "",
@@ -16,6 +16,11 @@ const getDefaultSetting = (): Setting => {
     dashScopeApiConfig: {
       key: "",
       model: "qwen-turbo",
+    },
+    qwenApiConfig: {
+      appId: "",
+      secretKey: "",
+      endpoint: "http://25.41.34.249:8008/api/ai/qwen/chat/v1.1/completions",
     },
   };
 };
@@ -27,7 +32,8 @@ interface SettingState {
   setTheme: (theme: Setting["theme"]) => void;
   setActiveProvider: (provider: Setting["activeProvider"]) => void;
   setOpenAIApiConfig: (openAIApiConfig: Setting["openAIApiConfig"]) => void;
-  setDashScopeApiConfig: (dashScopeApiConfig: DashScopeApiConfig) => void;
+  setDashScopeApiConfig: (dashScopeApiConfig: Setting["dashScopeApiConfig"]) => void;
+  setQwenApiConfig: (qwenApiConfig: Setting["qwenApiConfig"]) => void;
 }
 
 export const useSettingStore = create<SettingState>()(
@@ -36,44 +42,52 @@ export const useSettingStore = create<SettingState>()(
       setting: getDefaultSetting(),
       getState: () => get(),
       setLocale: (locale: Setting["locale"]) => {
-        set({
+        set((state: SettingState) => ({
           setting: {
-            ...get().setting,
+            ...state.setting,
             locale,
           },
-        });
+        }));
       },
       setTheme: (theme: Setting["theme"]) => {
-        set({
+        set((state: SettingState) => ({
           setting: {
-            ...get().setting,
+            ...state.setting,
             theme,
           },
-        });
+        }));
       },
-      setActiveProvider: (activeProvider: Setting["activeProvider"]) => {
-        set({
+      setActiveProvider: (provider: Setting["activeProvider"]) => {
+        set((state: SettingState) => ({
           setting: {
-            ...get().setting,
-            activeProvider,
+            ...state.setting,
+            activeProvider: provider,
           },
-        });
+        }));
       },
       setOpenAIApiConfig: (openAIApiConfig: Setting["openAIApiConfig"]) => {
-        set({
+        set((state: SettingState) => ({
           setting: {
-            ...get().setting,
+            ...state.setting,
             openAIApiConfig,
           },
-        });
+        }));
       },
-      setDashScopeApiConfig: (dashScopeApiConfig: DashScopeApiConfig) => {
-        set({
+      setDashScopeApiConfig: (dashScopeApiConfig: Setting["dashScopeApiConfig"]) => {
+        set((state: SettingState) => ({
           setting: {
-            ...get().setting,
+            ...state.setting,
             dashScopeApiConfig,
           },
-        });
+        }));
+      },
+      setQwenApiConfig: (qwenApiConfig: Setting["qwenApiConfig"]) => {
+        set((state: SettingState) => ({
+          setting: {
+            ...state.setting,
+            qwenApiConfig,
+          },
+        }));
       },
     }),
     {
