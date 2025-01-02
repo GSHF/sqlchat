@@ -112,15 +112,10 @@ const ConversationView = () => {
   }, [currentConversation, connectionStore.currentConnectionCtx]);
 
   const sendMessageToCurrentConversation = async (userPrompt: string) => {
-    const currentConversation = conversationStore.getConversationById(conversationStore.getState().currentConversationId);
     if (!currentConversation) {
       return;
     }
-    if (lastMessage?.status === "LOADING") {
-      return;
-    }
 
-    // Add user message to the store.
     const userMessage: Message = {
       id: generateUUID(),
       conversationId: currentConversation.id,
@@ -132,78 +127,52 @@ const ConversationView = () => {
     };
     messageStore.addMessage(userMessage);
 
-    // Construct the system prompt
-    const messageList = messageStore.getState().messageList.filter((message: Message) => message.conversationId === currentConversation.id);
-    const promptGenerator = getPromptGeneratorOfAssistant(getAssistantById(currentConversation.assistantId)!);
-    let dbPrompt = promptGenerator();
-    const maxToken = getModel(settingStore.setting.openAIApiConfig?.model || "").max_token;
-    // Squeeze as much prompt as possible under the token limit, the prompt is in the order of:
-    // 1. Assistant specific prompt with database schema if applicable.
-    // 2. A list of previous exchanges.
-    // 3. The current user prompt.
-    //
-    // The priority to fill in the prompt is in the order of:
-    // 1. The current user prompt.
-    // 2. Assistant specific prompt with database schema if applicable.
-    // 3. A list of previous exchanges
-    let tokens = countTextTokens(userPrompt);
+    const formatedMessageList = messageList
+      .filter((message) => message.status === "DONE")
+      .map((message) => ({
+        role: message.creatorRole === CreatorRole.System ? "system" : message.creatorRole === CreatorRole.User ? "user" : "assistant",
+        content: message.content,
+      }));
 
-    // Augument with database schema if available
-    if (connectionStore.currentConnectionCtx?.database) {
-      const schemaList = await connectionStore.getOrFetchDatabaseSchema(connectionStore.currentConnectionCtx?.database);
-      try {
-        dbPrompt = generateDbPromptFromContext(
-          promptGenerator,
-          connectionStore.currentConnectionCtx.connection.engineType,
-          schemaList,
-          currentConversation.selectedSchemaName || "",
-          currentConversation.selectedTableNameList || [],
-          maxToken,
-          userPrompt
-        );
-      } catch (error: any) {
-        toast.error(error.message);
-      }
-    }
+    // 添加SQL相关的系统提示词
+    const systemPrompt = `你是由山东电力开发的人工智能智能助手，如果别人询问你的身份或名字，请务必说自己叫"文心一言"，你可以帮助用户回答各类问题。
 
-    // Sliding window to add messages with DONE status all the way back up until we reach the token
-    // limit.
-    let usageMessageList: Message[] = [];
-    let formatedMessageList = [];
-    for (let i = messageList.length - 1; i >= 0; i--) {
-      const message = messageList[i];
-      if (message.status === "DONE") {
-        if (tokens < maxToken) {
-          tokens += countTextTokens(message.content);
-          formatedMessageList.unshift({
-            role: message.creatorRole,
-            content: message.content,
-          });
-        }
-      }
-    }
+当用户询问SQL相关问题时，请严格遵循以下规则：
+1. 必须使用markdown代码块格式返回SQL代码，格式如下：
+   \`\`\`sql
+   SELECT column_name
+   FROM table_name;
+   \`\`\`
 
-    // Add the db prompt as the first context.
-    formatedMessageList.unshift({
-      role: CreatorRole.System,
-      content: dbPrompt,
-    });
+2. SQL编写规范：
+   - 所有SQL关键字必须大写，如SELECT、FROM、WHERE、JOIN等
+   - 每个主要子句必须另起一行，并保持适当缩进
+   - 表名和字段名使用小写
+   - 使用清晰的格式化和适当的空格
 
-    // Add the user prompt as the last context.
-    formatedMessageList.push({
-      role: CreatorRole.User,
-      content: userPrompt,
-    });
+3. 如果需要解释SQL查询，请在代码块后面提供简洁的说明
 
-    const requestHeaders: any = {};
-    if (session?.user.id) {
-      requestHeaders["Authorization"] = `Bearer ${session?.user.id}`;
-    }
+4. 对于复杂查询，建议：
+   - 添加适当的注释说明查询逻辑
+   - 使用清晰的别名
+   - 合理使用子查询和CTE提高可读性`;
+
+    const requestHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // 将系统提示词添加到消息列表的开始
+    const messagesWithSystemPrompt = [
+      { role: "system", content: systemPrompt },
+      ...formatedMessageList,
+      { role: "user", content: userPrompt },
+    ];
+
     if (settingStore.setting.activeProvider === "qwen") {
       requestHeaders["x-provider"] = "qwen";
-      requestHeaders["x-qwen-endpoint"] = settingStore.setting.qwenApiConfig.endpoint;
-      requestHeaders["x-qwen-app-id"] = settingStore.setting.qwenApiConfig.appId;
-      requestHeaders["x-qwen-secret-key"] = settingStore.setting.qwenApiConfig.secretKey;
+      requestHeaders["x-qwen-endpoint"] = settingStore.setting.qwenApiConfig?.endpoint ?? "";
+      requestHeaders["x-qwen-app-id"] = settingStore.setting.qwenApiConfig?.appId ?? "";
+      requestHeaders["x-qwen-secret-key"] = settingStore.setting.qwenApiConfig?.secretKey ?? "";
     } else if (settingStore.setting.openAIApiConfig?.key) {
       requestHeaders["x-provider"] = "openai";
       requestHeaders["x-openai-key"] = settingStore.setting.openAIApiConfig.key;
@@ -221,7 +190,7 @@ const ConversationView = () => {
     const rawRes = await fetch("/api/chat", {
       method: "POST",
       body: JSON.stringify({
-        messages: formatedMessageList,
+        messages: messagesWithSystemPrompt,
       }),
       headers: requestHeaders,
     });
@@ -292,18 +261,16 @@ const ConversationView = () => {
       // Collect system prompt
       // We only collect the db prompt for the system prompt. We do not collect the intermediate
       // exchange to save space since those can be derived from the previous record.
-      usageMessageList.push({
-        id: generateUUID(),
-        createdAt: Date.now(),
-        creatorRole: CreatorRole.System,
-        content: dbPrompt,
-      } as Message);
-
-      // Collect user message
-      usageMessageList.push(userMessage);
-
-      // Collect assistant response
-      usageMessageList.push(assistantMessage);
+      const usageMessageList = [
+        {
+          id: generateUUID(),
+          createdAt: Date.now(),
+          creatorRole: CreatorRole.System,
+          content: systemPrompt,
+        } as Message,
+        userMessage,
+        assistantMessage,
+      ];
 
       axios
         .post<string[]>(

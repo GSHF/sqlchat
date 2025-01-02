@@ -1,38 +1,81 @@
 import { NextRequest } from "next/server";
 
+interface QwenMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+interface QwenRequestBody {
+  messages: QwenMessage[];
+  stream?: boolean;
+  temperature?: number;
+  max_tokens?: number;
+}
+
+interface QwenConfig {
+  model: string;
+  version: string;
+  messages: QwenMessage[];
+  stream: boolean;
+  max_tokens: number;
+  enableDoc: boolean;
+  enableBI: boolean;
+  enablePlugin: boolean;
+  enableHotQA: boolean;
+  temperature: number;
+  top_k: number;
+  top_p: number;
+  presence_penalty: number;
+  frequency_penalty: number;
+}
+
 export const config = {
   runtime: "edge",
 };
 
+const DEFAULT_TIMEOUT = 60000;
+
 const handler = async (req: NextRequest) => {
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Method not allowed",
+        },
+      }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
-    const reqBody = await req.json();
-    const qwenEndpoint = req.headers.get("x-qwen-endpoint");
-    const appId = req.headers.get("x-qwen-app-id");
-    const secretKey = req.headers.get("x-qwen-secret-key");
+    const requestHeaders = req.headers;
+    const qwenEndpoint = requestHeaders.get("x-qwen-endpoint");
+    const appId = requestHeaders.get("x-qwen-app-id");
+    const secretKey = requestHeaders.get("x-qwen-secret-key");
 
     if (!qwenEndpoint || !appId || !secretKey) {
       return new Response(
         JSON.stringify({
           error: {
-            message: "请配置通义千问服务的 APP ID、Secret Key 和 Endpoint",
+            message: "Missing required headers",
           },
         }),
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
           status: 400,
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
+
+    const reqBody: QwenRequestBody = await req.json();
+
     const requestBody = {
       model: "rsv-8h619k0x",
       version: "default",
-      messages: reqBody.messages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
+      messages: reqBody.messages,
       stream: true,
       max_tokens: 2048,
       enableDoc: false,
@@ -46,89 +89,66 @@ const handler = async (req: NextRequest) => {
       frequency_penalty: 0.1,
     };
 
-    // 使用自定义配置
     const headers = {
       "Content-Type": "application/json",
       APP_ID: appId,
       SECRET_KEY: secretKey,
     };
 
-    const response = await fetch(qwenEndpoint, {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(requestBody),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
-    if (!response.ok) {
-      let errorMessage = "调用内网通义千问服务时发生错误";
-      try {
-        const errorData = await response.json();
-        if (errorData.message) {
-          errorMessage = errorData.message;
+    try {
+      const response = await fetch(qwenEndpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = errorData.error?.message || "调用内网通义千问服务时发生错误";
+        if (errorData.status_code === "OVER-MAX-TOKENS") {
+          errorMessage = "对话历史过长，已超出模型最大token限制。已自动保留最近的对话。";
         }
-      } catch (e) {
-        console.error("解析错误响应时出错:", e);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorMessage}`);
       }
 
+      return new Response(response.body, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
       return new Response(
         JSON.stringify({
           error: {
-            message: errorMessage,
+            message: error.message || "An error occurred during the request",
           },
         }),
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          status: response.status,
+          status: 500,
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
-
-    // 创建转换流来处理响应
-    const transformStream = new TransformStream({
-      async transform(chunk, controller) {
-        const text = new TextDecoder().decode(chunk);
-        const lines = text.split("\n");
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-
-          try {
-            const jsonData = JSON.parse(line);
-            if (jsonData.message?.content) {
-              controller.enqueue(new TextEncoder().encode(jsonData.message.content));
-            }
-          } catch (e) {
-            console.error("解析数据时出错:", e, "行:", line);
-            continue;
-          }
-        }
-      },
-    });
-
-    // 返回流式响应
-    return new Response(response.body?.pipeThrough(transformStream), {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
   } catch (error: any) {
-    console.error("内网通义千问处理器错误:", error);
+    console.error("Error:", error);
     return new Response(
       JSON.stringify({
         error: {
-          message: error.message || "发生了意外错误",
-          stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+          message: error.message || "An error occurred while processing the request",
         },
       }),
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
         status: 500,
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
