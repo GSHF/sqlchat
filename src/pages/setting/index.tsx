@@ -38,13 +38,12 @@ const SettingPage: NextPage = () => {
     },
   ];
 
-  // Only render the page content when router is ready and client-side hydration is complete
-  const content = (!router.isReady || !mounted) ? null : (
-    <>
-      <Head>
-        <title>{t("setting.self")}</title>
-      </Head>
+  const renderContent = () => {
+    if (!router.isReady || !mounted) {
+      return null;
+    }
 
+    return (
       <div className="dark:bg-zinc-800">
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
@@ -181,10 +180,17 @@ const SettingPage: NextPage = () => {
           </div>
         </main>
       </div>
+    );
+  };
+
+  return (
+    <>
+      <Head>
+        <title>{t("setting.self")}</title>
+      </Head>
+      {renderContent()}
     </>
   );
-
-  return content;
 };
 
 export default SettingPage;

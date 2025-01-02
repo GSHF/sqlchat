@@ -52,9 +52,7 @@ const QwenApiConfigView = () => {
           />
         </div>
       </div>
-      <p className="text-sm text-gray-500">
-        {t("setting.qwen.description")}
-      </p>
+      <p className="text-sm text-gray-500">{t("setting.qwen.description")}</p>
     </div>
   );
 };

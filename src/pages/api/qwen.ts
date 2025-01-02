@@ -26,8 +26,6 @@ const handler = async (req: NextRequest) => {
         }
       );
     }
-    
-    // 构建请求体
     const requestBody = {
       model: "rsv-8h619k0x",
       version: "default",
@@ -45,14 +43,14 @@ const handler = async (req: NextRequest) => {
       top_k: 5,
       top_p: 0.3,
       presence_penalty: 0.1,
-      frequency_penalty: 0.1
+      frequency_penalty: 0.1,
     };
 
     // 使用自定义配置
     const headers = {
       "Content-Type": "application/json",
-      "APP_ID": appId,
-      "SECRET_KEY": secretKey,
+      APP_ID: appId,
+      SECRET_KEY: secretKey,
     };
 
     const response = await fetch(qwenEndpoint, {
@@ -114,7 +112,7 @@ const handler = async (req: NextRequest) => {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
       },
     });
   } catch (error: any) {
