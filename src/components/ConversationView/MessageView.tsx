@@ -133,8 +133,34 @@ const MessageView = (props: Props) => {
                         </pre>
                       );
                     },
-                    code({ children }) {
-                      return <code className="px-0">{children}</code>;
+                    code({ node, inline, className, children, ...props }) {
+                      const match = /language-(\w+)/.exec(className || "");
+                      const lang = match ? match[1] : "text";
+                      return !inline && match ? (
+                        <CodeBlock
+                          key={Math.random()}
+                          messageId={message.id}
+                          language={lang}
+                          value={String(children).replace(/\n$/, "")}
+                          {...props}
+                        />
+                      ) : (
+                        <code className="px-1 py-0.5 bg-gray-200 dark:bg-zinc-600 rounded" {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                    p({ children }) {
+                      return <p className="my-2">{children}</p>;
+                    },
+                    ul({ children }) {
+                      return <ul className="list-disc list-inside my-2">{children}</ul>;
+                    },
+                    ol({ children }) {
+                      return <ol className="list-decimal list-inside my-2">{children}</ol>;
+                    },
+                    li({ children }) {
+                      return <li className="my-1">{children}</li>;
                     },
                   }}
                 >
@@ -142,6 +168,11 @@ const MessageView = (props: Props) => {
                 </ReactMarkdown>
                 <span className="self-start text-sm text-gray-400 pt-1 pl-1">
                   {dayjs(message.createdAt).locale(settingStore.setting.locale).format("lll")}
+                  {process.env.SHOW_TOKEN_USAGE === "true" && message.usage && (
+                    <span className="ml-2 text-xs">
+                      {`· Tokens: ${message.usage.total_tokens} (${message.usage.prompt_tokens} prompt, ${message.usage.completion_tokens} completion)`}
+                    </span>
+                  )}
                 </span>
               </div>
               <div className="invisible group-hover:visible">

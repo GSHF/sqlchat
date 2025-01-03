@@ -1,4 +1,8 @@
-import { NextRequest } from "next/server";
+export const config = {
+  runtime: "edge",
+};
+
+import type { NextRequest } from "next/server";
 
 interface QwenMessage {
   role: "system" | "user" | "assistant";
@@ -6,10 +10,55 @@ interface QwenMessage {
 }
 
 interface QwenRequestBody {
+  model?: string;
+  version?: string;
   messages: QwenMessage[];
   stream?: boolean;
-  temperature?: number;
   max_tokens?: number;
+  enableDoc?: boolean;
+  enableBI?: boolean;
+  enablePlugin?: boolean;
+  enableHotQA?: boolean;
+  temperature?: number;
+  top_k?: number;
+  top_p?: number;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+  stop?: string[];
+}
+
+interface QwenResponse {
+  id: string;
+  created_time: number;
+  model: string;
+  version: string;
+  message: {
+    role: string;
+    content: string;
+    type: null;
+    features: null;
+  };
+  index: number;
+  prompt_tokens: number;
+  finish: boolean;
+  status_code: string;
+  completion_tokens: number;
+  total_tokens: number;
+  DebugInfoMap: Record<string, any>;
+  debug_infos: null;
+  references: Record<string, any>;
+}
+
+interface StandardResponse {
+  message: {
+    content: string;
+    role: string;
+  };
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
 interface QwenConfig {
@@ -29,11 +78,9 @@ interface QwenConfig {
   frequency_penalty: number;
 }
 
-export const config = {
-  runtime: "edge",
-};
-
 const DEFAULT_TIMEOUT = 60000;
+
+const QWEN_API_URL = "http://25.41.34.249:8008/api/ai/qwen/72b/chat";
 
 const handler = async (req: NextRequest) => {
   if (req.method !== "POST") {
@@ -51,16 +98,14 @@ const handler = async (req: NextRequest) => {
   }
 
   try {
-    const requestHeaders = req.headers;
-    const qwenEndpoint = requestHeaders.get("x-qwen-endpoint");
-    const appId = requestHeaders.get("x-qwen-app-id");
-    const secretKey = requestHeaders.get("x-qwen-secret-key");
+    const appId = process.env.QWEN_APP_ID || "";
+    const secretKey = process.env.QWEN_SECRET_KEY || "";
 
-    if (!qwenEndpoint || !appId || !secretKey) {
+    if (!appId || !secretKey) {
       return new Response(
         JSON.stringify({
           error: {
-            message: "Missing required headers",
+            message: "Missing required environment variables",
           },
         }),
         {
@@ -71,12 +116,16 @@ const handler = async (req: NextRequest) => {
     }
 
     const reqBody: QwenRequestBody = await req.json();
+    const messages = reqBody.messages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
 
-    const requestBody = {
+    const requestBody: QwenRequestBody = {
       model: "rsv-8h619k0x",
       version: "default",
-      messages: reqBody.messages,
-      stream: true,
+      messages: messages,
+      stream: false,
       max_tokens: 2048,
       enableDoc: false,
       enableBI: false,
@@ -91,45 +140,140 @@ const handler = async (req: NextRequest) => {
 
     const headers = {
       "Content-Type": "application/json",
-      APP_ID: appId,
-      SECRET_KEY: secretKey,
+      APP_ID: process.env.QWEN_APP_ID || "",
+      SECRET_KEY: process.env.QWEN_SECRET_KEY || "",
     };
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
-
     try {
-      const response = await fetch(qwenEndpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
+      const isInternalQwen = process.env.QWEN_INTERNAL === "true";
 
-      clearTimeout(timeoutId);
+      if (isInternalQwen) {
+        console.log("Internal Qwen Request Body:", requestBody);
+        const response = await fetch(QWEN_API_URL, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(requestBody),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        let errorMessage = errorData.error?.message || "调用内网通义千问服务时发生错误";
-        if (errorData.status_code === "OVER-MAX-TOKENS") {
-          errorMessage = "对话历史过长，已超出模型最大token限制。已自动保留最近的对话。";
+        if (!response.ok) {
+          console.error("Internal Qwen API Error:", response.status, response.statusText);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorMessage}`);
-      }
 
-      return new Response(response.body, {
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-        },
-      });
+        const responseText = await response.text();
+        console.log("Internal Qwen Raw Response:", responseText);
+
+        let responseData;
+        try {
+          responseData = JSON.parse(responseText);
+          console.log("Parsed Response Data:", responseData);
+        } catch (error) {
+          console.error("Failed to parse response as JSON:", error);
+          throw new Error("Invalid response format from Qwen API");
+        }
+
+        // 确保响应中包含必要的字段
+        if (!responseData.message?.content) {
+          console.error("Missing required fields in response:", responseData);
+          throw new Error("Invalid response structure from Qwen API");
+        }
+
+        // 构造标准响应格式
+        const standardResponse: StandardResponse = {
+          message: {
+            content: responseData.message.content,
+            role: responseData.message.role || "assistant",
+          },
+        };
+
+        // 如果存在 token 使用信息，添加到响应中
+        if (responseData.total_tokens) {
+          standardResponse.usage = {
+            prompt_tokens: responseData.prompt_tokens || 0,
+            completion_tokens: responseData.completion_tokens || 0,
+            total_tokens: responseData.total_tokens || 0,
+          };
+        }
+
+        console.log("Final Response:", standardResponse);
+        return new Response(JSON.stringify(standardResponse), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } else {
+        const response = await fetch(req.headers.get("x-qwen-endpoint") || "", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...requestBody,
+            stream: true,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        const transformStream = new TransformStream({
+          async transform(chunk, controller) {
+            buffer += decoder.decode(chunk, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+              if (line.trim() === "") continue;
+              const jsonStr = line.replace(/^data: /, "").trim();
+              if (jsonStr === "[DONE]") continue;
+
+              try {
+                const json = JSON.parse(jsonStr);
+                if (json.message?.content) {
+                  const formattedChunk = {
+                    id: "chatcmpl-" + Date.now(),
+                    object: "chat.completion.chunk",
+                    created: Date.now(),
+                    model: "qwen-turbo",
+                    choices: [
+                      {
+                        delta: {
+                          content: json.message.content,
+                        },
+                        index: 0,
+                        finish_reason: null,
+                      },
+                    ],
+                  };
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(formattedChunk)}\n\n`));
+                }
+              } catch (error) {
+                console.error("Error parsing JSON:", error);
+              }
+            }
+          },
+          flush(controller) {
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          },
+        });
+
+        return new Response(response.body?.pipeThrough(transformStream), {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        });
+      }
     } catch (error: any) {
       console.error("Error:", error);
       return new Response(
         JSON.stringify({
           error: {
-            message: error.message || "An error occurred during the request",
+            message: error.message || "An error occurred while processing your request",
           },
         }),
         {
@@ -143,7 +287,7 @@ const handler = async (req: NextRequest) => {
     return new Response(
       JSON.stringify({
         error: {
-          message: error.message || "An error occurred while processing the request",
+          message: error.message || "An error occurred while processing your request",
         },
       }),
       {

@@ -1,10 +1,10 @@
-import { createParser, ParsedEvent, ReconnectInterval } from "eventsource-parser";
-import { NextRequest } from "next/server";
-import { openAIApiEndpoint, openAIApiKey, openAIOrganization, hasFeature, getModel } from "@/utils";
-
 export const config = {
   runtime: "edge",
 };
+
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { openAIApiEndpoint, openAIApiKey, openAIOrganization, hasFeature, getModel } from "@/utils";
 
 const getApiEndpoint = (apiEndpoint: string) => {
   const url = new URL(apiEndpoint);
@@ -27,24 +27,80 @@ const cleanSSELine = (line: string): string => {
 };
 
 const handler = async (req: NextRequest) => {
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Method not allowed",
+        },
+      }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   const reqBody = await req.json();
   const provider = req.headers.get("x-provider") || "openai";
 
-  // 添加内网通义千问的支持
+  // 内网通义千问
   if (provider === "qwen") {
-    const response = await fetch(new URL("/api/qwen", req.url).toString(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(reqBody),
-    });
+    const qwenEndpoint = req.headers.get("x-qwen-endpoint");
+    const appId = req.headers.get("x-qwen-app-id");
+    const secretKey = req.headers.get("x-qwen-secret-key");
 
-    return new Response(response.body, {
-      headers: response.headers,
-    });
+    if (!appId || !secretKey) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Missing required headers: APP_ID or SECRET_KEY",
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    try {
+      console.log("Qwen Request:", {
+        endpoint: qwenEndpoint,
+        hasAppId: !!appId,
+        hasSecretKey: !!secretKey,
+      });
+
+      const qwenResponse = await fetch(new URL("/api/qwen", req.headers.get("origin") || "").toString(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-qwen-endpoint": qwenEndpoint || "",
+          "x-qwen-app-id": appId,
+          "x-qwen-secret-key": secretKey,
+        },
+        body: JSON.stringify(reqBody),
+      });
+
+      // Forward the response
+      return qwenResponse;
+    } catch (error: any) {
+      console.error("Error in chat handler:", error);
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: error.message || "An error occurred during your request.",
+          },
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
   }
 
+  // 外网通义千问
   if (provider === "dashscope") {
     const apiKey = req.headers.get("x-dashscope-key");
     if (!apiKey) {
@@ -55,10 +111,8 @@ const handler = async (req: NextRequest) => {
           },
         }),
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
           status: 401,
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -79,7 +133,7 @@ const handler = async (req: NextRequest) => {
           temperature: 0.7,
           enable_search: false,
           result_format: "message",
-          incremental_output: true, // Enable incremental output
+          incremental_output: true,
         },
       };
 
@@ -89,14 +143,13 @@ const handler = async (req: NextRequest) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: apiKey,
+          Authorization: `Bearer ${apiKey}`,
           Accept: "text/event-stream",
           "X-DashScope-SSE": "enable",
         },
         body: JSON.stringify(requestBody),
       });
 
-      // Add response status check and debug information
       console.log("Response status:", response.status);
       console.log("Response headers:", Object.fromEntries(response.headers.entries()));
 
@@ -127,26 +180,22 @@ const handler = async (req: NextRequest) => {
             },
           }),
           {
-            headers: {
-              "Content-Type": "application/json",
-            },
             status: response.status,
+            headers: { "Content-Type": "application/json" },
           }
         );
       }
 
-      // Create transform stream to process response
       const transformStream = new TransformStream({
         async transform(chunk, controller) {
           const text = new TextDecoder().decode(chunk);
-          console.log("Received chunk:", text); // Log received chunk for debugging
+          console.log("Received chunk:", text);
 
           const lines = text.split("\n");
 
           for (const line of lines) {
             if (!line.trim()) continue;
 
-            // Log processing line for debugging
             console.log("Processing line:", line);
 
             if (line.startsWith("data:")) {
@@ -154,15 +203,31 @@ const handler = async (req: NextRequest) => {
 
               try {
                 const jsonData = JSON.parse(data);
-                console.log("Parsed JSON data:", jsonData); // Log parsed JSON data for debugging
+                console.log("Parsed JSON data:", jsonData);
 
-                // Check different response formats
-                if (jsonData.output?.text) {
-                  controller.enqueue(new TextEncoder().encode(jsonData.output.text));
-                } else if (jsonData.output?.message?.content) {
-                  controller.enqueue(new TextEncoder().encode(jsonData.output.message.content));
-                } else if (jsonData.output?.choices?.[0]?.message?.content) {
-                  controller.enqueue(new TextEncoder().encode(jsonData.output.choices[0].message.content));
+                // Format the data as a proper SSE message
+                if (jsonData.output) {
+                  const content = jsonData.output.choices?.[0]?.message?.content;
+                  if (content) {
+                    const sseMessage = `data: ${JSON.stringify({
+                      output: {
+                        choices: [
+                          {
+                            message: {
+                              content,
+                              role: "assistant",
+                            },
+                            finish_reason: jsonData.output.choices[0].finish_reason || "null",
+                          },
+                        ],
+                      },
+                    })}\n\n`;
+                    controller.enqueue(new TextEncoder().encode(sseMessage));
+                  } else {
+                    console.warn("Unexpected response format:", jsonData);
+                  }
+                } else {
+                  console.warn("Missing output field in response:", jsonData);
                 }
               } catch (e) {
                 console.error("Error parsing SSE data:", e, "Line:", line);
@@ -173,7 +238,6 @@ const handler = async (req: NextRequest) => {
         },
       });
 
-      // Return stream response
       return new Response(response.body?.pipeThrough(transformStream), {
         headers: {
           "Content-Type": "text/event-stream",
@@ -191,10 +255,8 @@ const handler = async (req: NextRequest) => {
           },
         }),
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
           status: 500,
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -211,23 +273,38 @@ const handler = async (req: NextRequest) => {
         },
       }),
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
         status: 401,
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
 
   const useServerKey = !req.headers.get("x-openai-key");
   const sessionToken = req.cookies.get("next-auth.session-token")?.value;
+  if (!req.url) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Request URL is missing",
+        },
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
   const currentUrl = new URL(req.url);
   const usageUrl = new URL(currentUrl.protocol + "//" + currentUrl.host + "/api/usage");
   const requestHeaders: any = {
     Authorization: `Bearer ${sessionToken}`,
   };
+  const modelHeader = req.headers.get("x-openai-model");
+  const modelValue = modelHeader;
+  const model = getModel(modelValue || "");
+
   if (req.headers.get("x-openai-model")) {
-    requestHeaders["x-openai-model"] = req.headers.get("x-openai-model");
+    requestHeaders["x-openai-model"] = modelValue;
   }
 
   if (useServerKey) {
@@ -239,10 +316,8 @@ const handler = async (req: NextRequest) => {
           },
         }),
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
           status: 401,
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -254,14 +329,11 @@ const handler = async (req: NextRequest) => {
       const usageData = await usageResponse.json();
       if (!usageResponse.ok) {
         return new Response(JSON.stringify(usageData), {
-          headers: {
-            "Content-Type": "application/json",
-          },
           status: usageResponse.status,
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      const model = getModel(req.headers.get("x-openai-model") || "");
       if (usageData.usage + model.cost_per_call > usageData.quota) {
         return new Response(
           JSON.stringify({
@@ -270,10 +342,8 @@ const handler = async (req: NextRequest) => {
             },
           }),
           {
-            headers: {
-              "Content-Type": "application/json",
-            },
             status: 402,
+            headers: { "Content-Type": "application/json" },
           }
         );
       }
@@ -303,10 +373,8 @@ const handler = async (req: NextRequest) => {
     if (!response.ok) {
       const error = await response.json();
       return new Response(JSON.stringify(error), {
-        headers: {
-          "Content-Type": "application/json",
-        },
         status: response.status,
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -318,17 +386,16 @@ const handler = async (req: NextRequest) => {
       },
     });
   } catch (error: any) {
+    console.error("Error in chat handler:", error);
     return new Response(
       JSON.stringify({
         error: {
-          message: error.message,
+          message: error.message || "An error occurred during your request.",
         },
       }),
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
         status: 500,
+        headers: { "Content-Type": "application/json" },
       }
     );
   }

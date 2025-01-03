@@ -134,39 +134,85 @@ const ConversationView = () => {
         content: message.content,
       }));
 
-    // 添加SQL相关的系统提示词
-    const systemPrompt = `你是由山东电力开发的人工智能智能助手，如果别人询问你的身份或名字，请务必说自己叫"文心一言"，你可以帮助用户回答各类问题。
+    // Get the current database type and context
+    const currentConnection = connectionStore.currentConnectionCtx?.connection;
+    const currentDatabase = connectionStore.currentConnectionCtx?.database;
+    const dbContext = {
+      type: currentConnection?.engineType || "",
+      name: currentDatabase?.name || "",
+      version: "", // Version is not available in the current connection context
+    };
 
-当用户询问SQL相关问题时，请严格遵循以下规则：
-1. 必须使用markdown代码块格式返回SQL代码，格式如下：
-   \`\`\`sql
-   SELECT column_name
-   FROM table_name;
-   \`\`\`
+    const sqlContextPrompt = `你是一个专注于text2sql的AI助手。当前数据库环境：
+- 类型: ${dbContext.type}
+- 名称: ${dbContext.name}
+- 版本: ${dbContext.version}
 
-2. SQL编写规范：
-   - 所有SQL关键字必须大写，如SELECT、FROM、WHERE、JOIN等
-   - 每个主要子句必须另起一行，并保持适当缩进
-   - 表名和字段名使用小写
-   - 使用清晰的格式化和适当的空格
+请严格遵循以下规则：
 
-3. 如果需要解释SQL查询，请在代码块后面提供简洁的说明
+1. 数据库特定性：
+   - 只提供${dbContext.type}数据库的SQL语句
+   - 使用${dbContext.type} ${dbContext.version}版本的特定语法
+   - 不显示其他数据库类型的SQL
 
-4. 对于复杂查询，建议：
-   - 添加适当的注释说明查询逻辑
-   - 使用清晰的别名
-   - 合理使用子查询和CTE提高可读性`;
+2. 查询理解：
+   - 将包含数字的名称（如user001）视为完整的表名
+   - 默认查询表的所有内容
+   - 使用标准的${dbContext.type}语法格式
+
+3. 响应要求：
+   - 提供可直接执行的${dbContext.type}SQL语句
+   - 给出简洁的中文解释
+   - 说明预期的查询结果
+   - 如果遇到语法错误，提供修正建议
+
+示例：当用户说"查询user001表"时，应该生成适用于${dbContext.type}的查询语句，如：
+SELECT * FROM user001;`;
+
+    // Format messages based on provider
+    const baseMessages = [
+      ...formatedMessageList,
+      {
+        role: "user",
+        content: `[${dbContext.type}] ${userPrompt}`,
+      },
+    ];
+
+    let messages;
+    if (settingStore.setting.activeProvider === "qwen") {
+      // Internal Qwen
+      messages = [
+        {
+          role: "system",
+          content: `你是由山东电力开发的人工智能智能助手，如果别人询问你的身份或名字，请务必说自己叫"文心一言"。
+
+${sqlContextPrompt}`,
+        },
+        ...baseMessages,
+      ];
+    } else if (settingStore.setting.dashScopeApiConfig?.key) {
+      // External DashScope
+      messages = [
+        {
+          role: "system",
+          content: sqlContextPrompt,
+        },
+        ...baseMessages,
+      ];
+    } else {
+      // OpenAI
+      messages = [
+        {
+          role: "system",
+          content: sqlContextPrompt,
+        },
+        ...baseMessages,
+      ];
+    }
 
     const requestHeaders: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    // 将系统提示词添加到消息列表的开始
-    const messagesWithSystemPrompt = [
-      { role: "system", content: systemPrompt },
-      ...formatedMessageList,
-      { role: "user", content: userPrompt },
-    ];
 
     if (settingStore.setting.activeProvider === "qwen") {
       requestHeaders["x-provider"] = "qwen";
@@ -174,7 +220,6 @@ const ConversationView = () => {
       requestHeaders["x-qwen-app-id"] = settingStore.setting.qwenApiConfig?.appId ?? "";
       requestHeaders["x-qwen-secret-key"] = settingStore.setting.qwenApiConfig?.secretKey ?? "";
     } else if (settingStore.setting.openAIApiConfig?.key) {
-      requestHeaders["x-provider"] = "openai";
       requestHeaders["x-openai-key"] = settingStore.setting.openAIApiConfig.key;
       if (settingStore.setting.openAIApiConfig.endpoint) {
         requestHeaders["x-openai-endpoint"] = settingStore.setting.openAIApiConfig.endpoint;
@@ -187,10 +232,11 @@ const ConversationView = () => {
       requestHeaders["x-provider"] = "dashscope";
       requestHeaders["x-dashscope-model"] = settingStore.setting.dashScopeApiConfig.model;
     }
+
     const rawRes = await fetch("/api/chat", {
       method: "POST",
       body: JSON.stringify({
-        messages: messagesWithSystemPrompt,
+        messages,
       }),
       headers: requestHeaders,
     });
@@ -199,24 +245,21 @@ const ConversationView = () => {
       console.error(rawRes);
       let errorMessage = "Failed to request message, please check your network.";
       try {
-        const res = await rawRes.json();
-        errorMessage = res.error.message;
+        const errorData = await rawRes.json();
+        if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        }
       } catch (error) {
-        // do nth
+        // do nothing
       }
-      messageStore.addMessage({
-        id: generateUUID(),
-        conversationId: currentConversation.id,
-        creatorId: currentConversation.assistantId,
-        creatorRole: CreatorRole.Assistant,
-        createdAt: Date.now(),
-        content: errorMessage,
+      messageStore.updateMessage(userMessage.id, {
+        content: "",
         status: "FAILED",
+        error: errorMessage,
       });
       return;
     }
 
-    // Add PENDING assistant message to the store.
     const assistantMessage: Message = {
       id: generateUUID(),
       conversationId: currentConversation.id,
@@ -228,49 +271,94 @@ const ConversationView = () => {
     };
     messageStore.addMessage(assistantMessage);
 
-    const data = rawRes.body;
-    if (!data) {
-      toast.error("No data return");
-      return;
-    }
-
-    const reader = data.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let done = false;
-    while (!done) {
-      const { value, done: readerDone } = await reader.read();
-      if (value) {
-        const char = decoder.decode(value);
-        if (char) {
-          assistantMessage.content = assistantMessage.content + char;
+    try {
+      if (settingStore.setting.activeProvider === "qwen") {
+        // Handle internal Qwen response (non-streaming)
+        const data = await rawRes.json();
+        if (data.output?.choices?.[0]?.message?.content) {
           messageStore.updateMessage(assistantMessage.id, {
-            content: assistantMessage.content,
+            content: data.output.choices[0].message.content,
+            status: "DONE",
+          });
+        } else {
+          messageStore.updateMessage(assistantMessage.id, {
+            content: "Invalid response format",
+            status: "FAILED",
+            error: "Unexpected response from internal Qwen API",
+          });
+        }
+      } else if (settingStore.setting.dashScopeApiConfig?.key) {
+        // Handle DashScope streaming response
+        const reader = rawRes.body?.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedContent = "";
+        let hasReceivedContent = false;
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data:")) {
+                try {
+                  const jsonData = JSON.parse(line.slice(5));
+                  if (jsonData.output?.choices?.[0]?.message?.content) {
+                    const newContent = jsonData.output.choices[0].message.content;
+                    accumulatedContent += newContent;
+                    hasReceivedContent = true;
+                    messageStore.updateMessage(assistantMessage.id, {
+                      content: accumulatedContent,
+                      status: "LOADING",
+                    });
+                  }
+                } catch (e) {
+                  console.error("Error parsing JSON:", e);
+                }
+              }
+            }
+          }
+        }
+
+        messageStore.updateMessage(assistantMessage.id, {
+          content: hasReceivedContent ? accumulatedContent : "No response received. Please try again.",
+          status: hasReceivedContent ? "DONE" : "FAILED",
+          error: hasReceivedContent ? undefined : "No response received from DashScope API",
+        });
+      } else {
+        // Handle OpenAI response
+        const data = await rawRes.json();
+        if (data.message) {
+          messageStore.updateMessage(assistantMessage.id, {
+            content: data.message,
+            status: "DONE",
+          });
+        } else {
+          messageStore.updateMessage(assistantMessage.id, {
+            content: "Invalid response format",
+            status: "FAILED",
+            error: "Unexpected response from OpenAI API",
           });
         }
       }
-      done = readerDone;
+    } catch (error) {
+      console.error("Error processing response:", error);
+      messageStore.updateMessage(assistantMessage.id, {
+        content: "",
+        status: "FAILED",
+        error: "Failed to process response. Please try again.",
+      });
     }
-    messageStore.updateMessage(assistantMessage.id, {
-      status: "DONE",
-    });
 
     // Emit usage update event so quota widget can update.
     getEventEmitter().emit("usage.update");
 
     if (hasFeature("collect")) {
       // Collect system prompt
-      // We only collect the db prompt for the system prompt. We do not collect the intermediate
-      // exchange to save space since those can be derived from the previous record.
-      const usageMessageList = [
-        {
-          id: generateUUID(),
-          createdAt: Date.now(),
-          creatorRole: CreatorRole.System,
-          content: systemPrompt,
-        } as Message,
-        userMessage,
-        assistantMessage,
-      ];
+      const usageMessageList = [userMessage, assistantMessage];
 
       axios
         .post<string[]>(

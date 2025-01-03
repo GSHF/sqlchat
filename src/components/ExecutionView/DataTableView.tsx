@@ -15,7 +15,14 @@ const DataTableView = (props: Props) => {
     return {
       name: key,
       sortable: true,
-      selector: (row: any) => row[key],
+      selector: (row: any) => {
+        const value = row[key];
+        // 如果值是对象，将其转换为字符串
+        if (value && typeof value === "object") {
+          return JSON.stringify(value);
+        }
+        return value;
+      },
     };
   });
 
