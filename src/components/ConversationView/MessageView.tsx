@@ -73,7 +73,11 @@ const MessageView = (props: Props) => {
             </Dropdown>
           </div>
           <div className="w-auto max-w-[calc(100%-2rem)] flex flex-col justify-start items-start">
-            <div className={`w-full ${message.status === "FAILED" ? "bg-red-100 text-red-600" : "bg-indigo-600 text-white"} dark:text-gray-200 px-4 py-2 rounded-lg whitespace-pre-wrap break-all`}>
+            <div
+              className={`w-full ${
+                message.status === "FAILED" ? "bg-red-100 text-red-600" : "bg-indigo-600 text-white"
+              } dark:text-gray-200 px-4 py-2 rounded-lg whitespace-pre-wrap break-all`}
+            >
               {message.status === "LOADING" ? (
                 <ThreeDotsLoader />
               ) : message.status === "FAILED" ? (
@@ -83,9 +87,7 @@ const MessageView = (props: Props) => {
               )}
             </div>
             {message.status === "FAILED" && (
-              <div className="text-sm text-red-500 mt-1">
-                {message.error || "请检查网络连接或联系管理员"}
-              </div>
+              <div className="text-sm text-red-500 mt-1">{message.error || "请检查网络连接或联系管理员"}</div>
             )}
           </div>
           <div className="w-10 h-10 border dark:border-zinc-700 rounded-full flex justify-center items-center ml-2 shrink-0">
