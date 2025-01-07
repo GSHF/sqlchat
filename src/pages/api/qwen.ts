@@ -80,7 +80,20 @@ interface QwenConfig {
 
 const DEFAULT_TIMEOUT = 60000;
 
-const QWEN_API_URL = "http://25.41.34.249:8008/api/ai/qwen/72b/chat";
+// 内网通义千问配置
+const INTERNAL_QWEN_CONFIG = {
+  model: "rsv-8h619k0x",
+  version: "default",
+  appId: "8fb1bd5df3b24265bcfff855652e3c9a",
+  secretKey: "41514d28b825409468b0241dc4a672ab",
+  endpoint: "http://25.41.34.249:8008/api/ai/qwen/72b/chat",
+};
+
+// 外网通义千问配置
+const EXTERNAL_QWEN_CONFIG = {
+  model: "qwen-72b-v2.5",
+  version: "v2.5",
+};
 
 const handler = async (req: NextRequest) => {
   if (req.method !== "POST") {
@@ -93,29 +106,55 @@ const handler = async (req: NextRequest) => {
       {
         status: 405,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 
   try {
     const reqBody = await req.json();
-    const messages = reqBody.messages.map((msg: any) => ({
-      role: msg.role,
-      content: msg.content,
-    }));
+    
+    // 从请求头中获取配置信息
+    const qwenEndpoint = req.headers.get("x-qwen-endpoint") || INTERNAL_QWEN_CONFIG.endpoint;
+    const qwenAppId = req.headers.get("x-qwen-app-id") || INTERNAL_QWEN_CONFIG.appId;
+    const qwenSecretKey = req.headers.get("x-qwen-secret-key") || INTERNAL_QWEN_CONFIG.secretKey;
 
-    // 构建请求体，完全匹配Python示例的结构
+    // 判断是否为内网环境
+    const isInternalNetwork = qwenEndpoint?.includes("25.41.") || 
+                            qwenEndpoint?.includes("192.168.") || 
+                            qwenEndpoint?.includes("10.") ||
+                            qwenEndpoint?.includes("localhost") ||
+                            qwenEndpoint?.includes("127.0.0.1");
+
+    // 根据环境选择配置
+    const config = isInternalNetwork ? INTERNAL_QWEN_CONFIG : EXTERNAL_QWEN_CONFIG;
+
+    const messages: QwenMessage[] = [];
+
+    // 添加系统消息
+    if (isInternalNetwork) {
+      messages.push({
+        role: "system",
+        content: `你是由山东电力开发的人工智能智能助手，你可以帮助用户回答各类问题。生成SQL时请注意：1. 只使用表中实际存在的字段。2. 不要在SQL语句中添加分号。3. 如果不确定字段是否存在，请先询问用户
+示例：SELECT * FROM table_name WHERE existing_field = 'value'`});
+    }
+
+    // 添加用户消息
+    if (reqBody.messages && Array.isArray(reqBody.messages)) {
+      reqBody.messages.forEach((msg: QwenMessage) => {
+        if (msg.role === "user" || msg.role === "assistant") {
+          messages.push({
+            role: msg.role,
+            content: msg.content
+          });
+        }
+      });
+    }
+
+    // 构建请求体
     const requestBody: QwenRequestBody = {
-      model: "rsv-8h619k0x",
-      version: "default",
-      messages: [
-        {
-          role: "system",
-          content:
-            "你是由山东电力开发的人工智能智能助手，如果别人询问你的身份或名字，请务必说自己叫'文心一言'，你可以帮助用户回答各类问题。",
-        },
-        ...messages,
-      ],
+      model: isInternalNetwork ? "rsv-8h619k0x" : "qwen-72b-v2.5",
+      version: isInternalNetwork ? "default" : "v2.5",
+      messages,
       stream: false,
       max_tokens: 2048,
       enableDoc: false,
@@ -129,25 +168,40 @@ const handler = async (req: NextRequest) => {
       frequency_penalty: 0.1,
     };
 
-    // 设置请求头，使用固定的凭证
-    const headers = {
+    // 构建请求头
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      APP_ID: "8fb1bd5df3b24265bcfff855652e3c9a",
-      SECRET_KEY: "41514d28b825409468b0241dc4a672ab",
     };
 
+    if (isInternalNetwork) {
+      headers["APP_ID"] = qwenAppId;
+      headers["SECRET_KEY"] = qwenSecretKey;
+    } else {
+      headers["Authorization"] = `Bearer ${qwenSecretKey}`;
+    }
+
     console.log("Qwen Request:", {
-      url: QWEN_API_URL,
-      headers: headers,
-      body: requestBody,
+      endpoint: qwenEndpoint,
+      hasAppId: !!qwenAppId,
+      hasSecretKey: !!qwenSecretKey,
+      messageCount: messages.length,
+      model: requestBody.model,
+      version: requestBody.version,
     });
 
     try {
-      const response = await fetch(QWEN_API_URL, {
+      // 添加详细的请求日志
+      console.log("Request Details:", {
+        isInternalNetwork,
+        endpoint: qwenEndpoint,
+        messages,
+        requestBody: JSON.stringify(requestBody, null, 2)
+      });
+
+      const response = await fetch(qwenEndpoint, {
         method: "POST",
         headers: headers,
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(10000), // 10 seconds timeout
       });
 
       if (!response.ok) {
@@ -160,9 +214,10 @@ const handler = async (req: NextRequest) => {
               message: `API服务器返回错误: ${response.status} ${response.statusText}`,
               type: "api_error",
               code: response.status,
+              details: errorText,
             },
           }),
-          { status: response.status }
+          { status: response.status },
         );
       }
 
@@ -172,11 +227,56 @@ const handler = async (req: NextRequest) => {
       const responseData = JSON.parse(responseText);
       console.log("Parsed Response:", responseData);
 
+      // 检查响应状态
+      if (responseData.status_code && responseData.status_code !== "SUCCESS") {
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: responseData.message?.content || "API返回错误状态",
+              type: "api_error",
+              status_code: responseData.status_code,
+            },
+          }),
+          { status: 400 },
+        );
+      }
+
+      // 处理响应中的SQL语句，添加必要的限制
+      let processedContent = responseData.message.content;
+      
+      // 只在内网环境下处理 SQL
+      if (isInternalNetwork) {
+        // 提取SQL语句
+        const sqlMatch = processedContent.match(/```sql\n([\s\S]*?)\n```/);
+        if (sqlMatch) {
+          const originalSql = sqlMatch[1].trim();
+          let optimizedSql = originalSql;
+
+          // 检查是否是SELECT查询
+          if (optimizedSql.toLowerCase().startsWith('select')) {
+            // 检查是否已经有LIMIT子句
+            if (!optimizedSql.toLowerCase().includes('limit')) {
+              // 添加LIMIT子句
+              optimizedSql += ' LIMIT 1000';
+              
+              // 添加优化建议
+              processedContent += '\n\n注意：为了保护数据库资源，已自动添加LIMIT 1000限制。如果需要查看更多数据，建议：\n';
+              processedContent += '1. 添加更多的WHERE条件缩小结果集\n';
+              processedContent += '2. 使用分页查询（LIMIT offset, count）\n';
+              processedContent += '3. 考虑使用汇总查询替代全量查询';
+            }
+          }
+
+          // 替换原始SQL为优化后的SQL
+          processedContent = processedContent.replace(sqlMatch[0], '```sql\n' + optimizedSql + '\n```');
+        }
+      }
+
       // 构造标准响应格式
-      const standardResponse = {
+      const standardResponse: StandardResponse = {
         message: {
-          content: responseData.message?.content || "",
-          role: responseData.message?.role || "assistant",
+          content: processedContent,
+          role: "assistant",
         },
         usage: {
           prompt_tokens: responseData.prompt_tokens || 0,
@@ -185,7 +285,6 @@ const handler = async (req: NextRequest) => {
         },
       };
 
-      console.log("Final Response:", standardResponse);
       return new Response(JSON.stringify(standardResponse), {
         headers: { "Content-Type": "application/json" },
       });
@@ -199,10 +298,7 @@ const handler = async (req: NextRequest) => {
             details: fetchError.message,
           },
         }),
-        {
-          status: 503,
-          headers: { "Content-Type": "application/json" },
-        }
+        { status: 503 },
       );
     }
   } catch (error: any) {
@@ -218,7 +314,7 @@ const handler = async (req: NextRequest) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 };

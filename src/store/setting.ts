@@ -3,11 +3,20 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Setting, DashScopeApiConfig, QwenApiConfig } from "@/types";
 
+// 检测是否为内网环境（根据实际IP地址判断）
+const isInternalNetwork = typeof window !== "undefined" && (
+  window.location.hostname === "localhost" || 
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname.startsWith("25.41.") ||
+  window.location.hostname.startsWith("192.168.") ||
+  window.location.hostname.startsWith("10.")
+);
+
 const getDefaultSetting = (): Setting => {
   return {
-    locale: "en",
+    locale: isInternalNetwork ? "zh" : "en", // 内网默认中文，外网默认英文
     theme: "system",
-    activeProvider: "qwen", // 默认使用内网通义千问
+    activeProvider: isInternalNetwork ? "qwen" : "openai", // 内网默认通义千问，外网默认OpenAI
     openAIApiConfig: {
       key: "",
       endpoint: "",
@@ -18,9 +27,10 @@ const getDefaultSetting = (): Setting => {
       model: "qwen-turbo",
     },
     qwenApiConfig: {
-      appId: "8fb1bd5df3b24265bcfff855652e3c9a",
-      secretKey: "41514d28b825409468b0241dc4a672ab",
-      endpoint: "http://25.41.34.249:8008/api/ai/qwen/72b/chat",
+      // 内网环境使用固定配置，外网环境使用空配置
+      appId: isInternalNetwork ? "8fb1bd5df3b24265bcfff855652e3c9a" : "",
+      secretKey: isInternalNetwork ? "41514d28b825409468b0241dc4a672ab" : "",
+      endpoint: isInternalNetwork ? "http://25.41.34.249:8008/api/ai/qwen/72b/chat" : "",
     },
   };
 };

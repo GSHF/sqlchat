@@ -275,9 +275,9 @@ ${sqlContextPrompt}`,
       if (settingStore.setting.activeProvider === "qwen") {
         // Handle internal Qwen response (non-streaming)
         const data = await rawRes.json();
-        if (data.output?.choices?.[0]?.message?.content) {
+        if (data.message?.content) {
           messageStore.updateMessage(assistantMessage.id, {
-            content: data.output.choices[0].message.content,
+            content: data.message.content,
             status: "DONE",
           });
         } else {

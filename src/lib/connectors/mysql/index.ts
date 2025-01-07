@@ -53,7 +53,7 @@ const testConnection = async (connection: Connection): Promise<boolean> => {
 const execute = async (connection: Connection, databaseName: string, statement: string): Promise<any> => {
   connection.database = databaseName;
   const conn = await getMySQLConnection(connection);
-  const [rows] = await conn.execute(statement);
+  const [rows] = await conn.query(statement);
   conn.destroy();
 
   const executionResult: ExecutionResult = {
