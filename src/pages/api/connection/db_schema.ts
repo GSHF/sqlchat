@@ -9,27 +9,64 @@ import { Engine } from "@/types/connection";
 // It's mainly used to get the database list.
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "POST") {
-    return res.status(405).json([]);
+    return res.status(405).json({
+      message: "Method not allowed",
+      code: "METHOD_NOT_ALLOWED"
+    });
+  }
+
+  if (!req.body.connection || !req.body.db) {
+    return res.status(400).json({
+      message: "Missing required parameters: connection or db",
+      code: "INVALID_PARAMETERS"
+    });
   }
 
   let connection = req.body.connection as Connection;
-  if (connection.engineType === Engine.TiDB) {
-    connection = changeTiDBConnectionToMySQL(connection);
-  }
-
   const db = req.body.db as string;
 
   try {
-    const connector = newConnector(connection);
-    const schemaList: Schema[] = await connector.getTableSchema(db);
+    // Convert TiDB connection to MySQL if needed
+    if (connection.engineType === Engine.TiDB) {
+      connection = changeTiDBConnectionToMySQL(connection);
+    }
 
-    res.status(200).json({
-      data: schemaList,
+    // Validate connection parameters
+    if (!connection.host || !connection.port || !connection.username) {
+      return res.status(400).json({
+        message: "Invalid connection parameters: missing host, port, or username",
+        code: "INVALID_CONNECTION"
+      });
+    }
+
+    console.log('Creating connector for database:', db);
+    const connector = newConnector(connection);
+    
+    // First test the connection
+    try {
+      await connector.testConnection();
+    } catch (error: any) {
+      console.error('Connection test failed:', error);
+      return res.status(400).json({
+        message: "Failed to connect to database: " + (error.message || "Unknown error"),
+        code: error.code || "CONNECTION_ERROR"
+      });
+    }
+
+    console.log('Fetching schema for database:', db);
+    const schemaList = await connector.getTableSchema(db);
+    console.log('Schema fetched successfully');
+
+    return res.status(200).json({
+      code: "SUCCESS",
+      message: "Schema fetched successfully",
+      data: schemaList
     });
   } catch (error: any) {
-    res.status(400).json({
-      message: error.message || "Failed to get database schema.",
-      code: error.code || "UNKNOWN",
+    console.error('Error fetching schema:', error);
+    return res.status(500).json({
+      message: "Failed to fetch schema: " + (error.message || "Unknown error"),
+      code: error.code || "SCHEMA_ERROR"
     });
   }
 };

@@ -1,17 +1,20 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import copy from "copy-to-clipboard";
 import { toast } from "react-hot-toast";
-import { useTranslation } from "react-i18next";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import { useConnectionStore, useQueryStore } from "@/store";
+import { useConnectionStore } from "@/store";
+import { useQueryStore } from "@/store/query";
+import { ApiPublishModal } from "./ApiPublishModal";
 import Icon from "./Icon";
 import Tooltip from "./kit/Tooltip";
 import { Id } from "@/types";
+import { parseAndGenerateAPI } from "@/utils/sqlToApi";
+import { Vulcan } from "@/vulcan/core";
 
 interface Props {
   language: string;
   value: string;
-  messageId: Id;
+  messageId?: Id;
   wrapLongLines?: boolean;
 }
 
@@ -21,6 +24,9 @@ export const CodeBlock = (props: Props) => {
   const connectionStore = useConnectionStore();
   const queryStore = useQueryStore();
   const currentConnectionCtx = connectionStore.currentConnectionCtx;
+  const [showApiModal, setShowApiModal] = useState(false);
+  const selectedDatabase = currentConnectionCtx?.selectedDatabase || currentConnectionCtx?.connection?.database;
+
   // Only show execute button in the following situations:
   // * SQL code;
   // * Connection setup;
@@ -46,37 +52,63 @@ export const CodeBlock = (props: Props) => {
     queryStore.toggleDrawer(true);
   };
 
+  const handlePublishAPI = () => {
+    if (!currentConnectionCtx) {
+      toast.error("Please select a connection first");
+      return;
+    }
+    setShowApiModal(true);
+  };
+
   return (
-    <div className="w-full max-w-full relative font-sans text-[16px]">
-      <div className="flex items-center justify-between py-2 px-4">
-        <span className="text-xs text-black dark:text-gray-300 font-mono">{language}</span>
-        <div className="flex items-center space-x-2">
-          <Tooltip title={t("common.copy")} side="top">
-            <button
-              className="flex justify-center items-center rounded bg-none w-6 h-6 p-1 text-xs text-white bg-gray-500 opacity-70 hover:opacity-100"
-              onClick={copyToClipboard}
-            >
-              <Icon.BiClipboard className="w-full h-auto" />
-            </button>
-          </Tooltip>
-          {showExecuteButton && (
-            <button
-              className="flex justify-center items-center rounded bg-none h-6 py-1 px-2 text-xs text-white bg-indigo-600 opacity-90 hover:opacity-100"
-              onClick={handleExecuteQuery}
-            >
-              {t("common.run-sql")}
-            </button>
-          )}
+    <>
+      <div className="w-full max-w-full relative font-sans text-[16px]">
+        <div className="flex items-center justify-between py-2 px-4">
+          <span className="text-xs text-gray-400">{language}</span>
+          <div className="flex items-center">
+            {showExecuteButton && (
+              <>
+                <button
+                  className="mr-2 px-3 py-1 rounded-lg bg-indigo-600 text-white text-sm hover:opacity-80"
+                  onClick={handleExecuteQuery}
+                >
+                  运行 SQL
+                </button>
+                <button
+                  className="mr-2 px-3 py-1 rounded-lg bg-green-600 text-white text-sm hover:opacity-80"
+                  onClick={handlePublishAPI}
+                >
+                  发布 API
+                </button>
+              </>
+            )}
+            <Tooltip title={t("common.copy")} side="top">
+              <button onClick={copyToClipboard} className="hover:opacity-80">
+                <Icon.IoCopy className="w-4 h-auto opacity-60" />
+              </button>
+            </Tooltip>
+          </div>
         </div>
+        <pre
+          className={`whitespace-pre-wrap bg-gray-100 dark:bg-zinc-600 rounded-lg p-4 my-2 overflow-x-auto ${
+            wrapLongLines ? "break-words" : ""
+          }`}
+        >
+          <code>{value}</code>
+        </pre>
+
+        {/* API发布模态框 */}
+        {showApiModal && currentConnectionCtx && (
+          <ApiPublishModal
+            isOpen={showApiModal}
+            onClose={() => setShowApiModal(false)}
+            connection={currentConnectionCtx.connection}
+            tableName={value.toLowerCase().includes("from") ? value.toLowerCase().split("from")[1].trim().split(" ")[0] : "query"}
+            sqlQuery={value}
+            selectedDatabase={selectedDatabase}
+          />
+        )}
       </div>
-      <SyntaxHighlighter
-        language={language.toLowerCase()}
-        wrapLongLines={wrapLongLines || false}
-        style={oneDark}
-        customStyle={{ margin: 0 }}
-      >
-        {value}
-      </SyntaxHighlighter>
-    </div>
+    </>
   );
 };

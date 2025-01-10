@@ -73,8 +73,11 @@ const QueryDrawer = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          connection,
-          db: database?.name,
+          connection: {
+            ...connection,
+            database: database?.name || connection.database
+          },
+          db: database?.name || connection.database,
           statement,
         }),
       });

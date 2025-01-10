@@ -4,9 +4,11 @@ import { useTranslation } from "react-i18next";
 import { useConnectionStore } from "@/store";
 import { Connection } from "@/types";
 import Tooltip from "../kit/Tooltip";
-import Icon from "../Icon";
+import { FiEdit3 } from "react-icons/fi";
+import { AiOutlinePlus } from "react-icons/ai";
 import EngineIcon from "../EngineIcon";
 import CreateConnectionModal from "../CreateConnectionModal";
+import toast from "@/utils/toast";
 
 interface State {
   showCreateConnectionModal: boolean;
@@ -33,11 +35,36 @@ const ConnectionList = () => {
   };
 
   const handleConnectionSelect = async (connection: Connection) => {
-    const databaseList = await connectionStore.getOrFetchDatabaseList(connection);
-    connectionStore.setCurrentConnectionCtx({
-      connection,
-      database: head(databaseList),
-    });
+    try {
+      console.log('Selecting connection:', connection);
+      
+      // Clear current connection context first
+      connectionStore.setCurrentConnectionCtx({
+        connection: connection,
+        database: undefined
+      });
+      
+      const databaseList = await connectionStore.getOrFetchDatabaseList(connection, true);
+      console.log('Fetched database list:', databaseList);
+      
+      if (databaseList.length === 0) {
+        console.error('No databases available for connection');
+        toast.error('No databases available for this connection');
+        return;
+      }
+      
+      // Select the first database by default
+      const selectedDatabase = databaseList[0];
+      console.log('Setting connection context with database:', selectedDatabase);
+      
+      connectionStore.setCurrentConnectionCtx({
+        connection: connection,
+        database: selectedDatabase
+      });
+    } catch (error) {
+      console.error('Error selecting connection:', error);
+      toast.error('Failed to load databases');
+    }
   };
 
   const handleEditConnection = (connection: Connection) => {
@@ -71,7 +98,7 @@ const ConnectionList = () => {
                 handleEditConnection(connection);
               }}
             >
-              <Icon.FiEdit3 className="w-3.5 h-auto dark:text-gray-300" />
+              <FiEdit3 className="w-3.5 h-auto dark:text-gray-300" />
             </span>
             <EngineIcon engine={connection.engineType} className="w-auto h-full mx-auto dark:text-gray-300" />
           </button>
@@ -82,7 +109,7 @@ const ConnectionList = () => {
           className="w-10 h-10 mt-4 ml-2 p-2 bg-gray-100 dark:bg-zinc-700 rounded-full text-gray-500 cursor-pointer"
           onClick={() => toggleCreateConnectionModal(true)}
         >
-          <Icon.AiOutlinePlus className="w-auto h-full mx-auto" />
+          <AiOutlinePlus className="w-auto h-full mx-auto" />
         </button>
       </Tooltip>
 

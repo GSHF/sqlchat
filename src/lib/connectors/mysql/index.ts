@@ -6,109 +6,166 @@ import { Connector } from "..";
 const systemDatabases = ["information_schema", "mysql", "performance_schema", "sys"];
 
 const getMySQLConnection = async (connection: Connection): Promise<mysql.Connection> => {
-  const connectionOptions: ConnectionOptions = {
+  console.log("Creating MySQL connection for:", connection.host);
+  const conn = await mysql.createConnection({
     host: connection.host,
-    port: parseInt(connection.port),
+    port: Number(connection.port),
     user: connection.username,
     password: connection.password,
     database: connection.database,
-  };
-  if (connection.ssl) {
-    connectionOptions.ssl = {
-      ca: connection.ssl?.ca,
-      cert: connection.ssl?.cert,
-      key: connection.ssl?.key,
-    };
-  } else {
-    // rejectUnauthorized=false to infer sslmode=prefer since hosted MySQL venders have SSL enabled.
-    connectionOptions.ssl = {
-      rejectUnauthorized: false,
-    };
-  }
-
-  let conn;
-  if (connection.ssl) {
-    conn = await mysql.createConnection(connectionOptions);
-  } else {
-    try {
-      conn = await mysql.createConnection(connectionOptions);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("Server does not support secure")) {
-        connectionOptions.ssl = undefined;
-        conn = await mysql.createConnection(connectionOptions);
-      } else {
-        throw error;
-      }
-    }
-  }
+  });
+  console.log("MySQL connection created successfully");
   return conn;
 };
 
 const testConnection = async (connection: Connection): Promise<boolean> => {
-  const conn = await getMySQLConnection(connection);
-  conn.destroy();
-  return true;
-};
-
-const execute = async (connection: Connection, databaseName: string, statement: string): Promise<any> => {
-  connection.database = databaseName;
-  const conn = await getMySQLConnection(connection);
-  const [rows] = await conn.query(statement);
-  conn.destroy();
-
-  const executionResult: ExecutionResult = {
-    rawResult: [],
-    affectedRows: 0,
-  };
-  if (Array.isArray(rows)) {
-    executionResult.rawResult = rows;
-  } else {
-    executionResult.affectedRows = rows.affectedRows;
-  }
-  return executionResult;
-};
-
-const getDatabases = async (connection: Connection): Promise<string[]> => {
-  const conn = await getMySQLConnection(connection);
-  const [rows] = await conn.query<RowDataPacket[]>(
-    `SELECT schema_name as db_name FROM information_schema.schemata WHERE schema_name NOT IN (?);`,
-    [systemDatabases]
-  );
-  conn.destroy();
-  const databaseList = [];
-  for (const row of rows) {
-    if (row["db_name"]) {
-      databaseList.push(row["db_name"]);
+  let conn: mysql.Connection | null = null;
+  try {
+    conn = await getMySQLConnection(connection);
+    await conn.query("SELECT 1");
+    return true;
+  } catch (error: any) {
+    throw new Error(`Connection test failed: ${error.message}`);
+  } finally {
+    if (conn) {
+      await conn.end().catch(() => {});
     }
   }
-  return databaseList;
 };
 
 const getTableSchema = async (connection: Connection, databaseName: string): Promise<Schema[]> => {
-  const conn = await getMySQLConnection(connection);
-  // get All tableList from database
-  const [rows] = await conn.query<RowDataPacket[]>(
-    // SYSTEM VERSIONED is a special table for MariaDB https://mariadb.com/kb/en/system-versioned-tables/
-    `SELECT TABLE_NAME as table_name FROM information_schema.tables WHERE TABLE_SCHEMA=? AND (TABLE_TYPE='BASE TABLE' || TABLE_TYPE='SYSTEM VERSIONED');`,
-    [databaseName]
-  );
-  const tableList = [];
-  for (const row of rows) {
-    if (row["table_name"]) {
-      tableList.push(row["table_name"]);
+  let conn: mysql.Connection | null = null;
+  try {
+    console.log("Getting table schema for database:", databaseName);
+    conn = await getMySQLConnection({
+      ...connection,
+      database: databaseName // Ensure we connect with the correct database
+    });
+    
+    // Get all tables
+    console.log("Getting tables list...");
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT TABLE_NAME 
+       FROM INFORMATION_SCHEMA.TABLES 
+       WHERE TABLE_SCHEMA = ? 
+       AND TABLE_TYPE = 'BASE TABLE'`,
+      [databaseName]
+    );
+
+    console.log("Raw table list:", rows);
+    const tableList = rows.map(row => row.TABLE_NAME).filter(Boolean);
+    console.log("Filtered table list:", tableList);
+    
+    if (tableList.length === 0) {
+      console.log("No tables found in database");
+      return [{ name: "", tables: [] }];
+    }
+
+    const SchemaList: Schema[] = [{ name: "", tables: [] }];
+
+    // Get structure for each table
+    for (const tableName of tableList) {
+      try {
+        console.log("Getting structure for table:", tableName);
+        const [createTableResult] = await conn.query<RowDataPacket[]>(
+          `SHOW CREATE TABLE \`${tableName}\``,
+          []
+        );
+
+        if (createTableResult && createTableResult[0]) {
+          const createTable = createTableResult[0]["Create Table"];
+          if (createTable) {
+            SchemaList[0].tables.push({
+              name: tableName,
+              structure: createTable
+            });
+            console.log("Successfully got structure for table:", tableName);
+          } else {
+            console.log("Empty create table statement for:", tableName);
+          }
+        } else {
+          console.log("No create table result for:", tableName);
+        }
+      } catch (error: any) {
+        console.error(`Error getting structure for table ${tableName}:`, error);
+        // Don't add tables with errors to the list
+        continue;
+      }
+    }
+
+    console.log("Final schema list:", JSON.stringify(SchemaList, null, 2));
+    return SchemaList;
+  } catch (error: any) {
+    console.error("Failed to get table schema:", error);
+    throw error;
+  } finally {
+    if (conn) {
+      console.log("Closing MySQL connection");
+      await conn.end().catch((err) => {
+        console.error("Error closing connection:", err);
+      });
     }
   }
-  const SchemaList: Schema[] = [{ name: "", tables: [] as Table[] }];
+};
 
-  for (const tableName of tableList) {
-    const [rows] = await conn.query<RowDataPacket[]>(`SHOW CREATE TABLE \`${databaseName}\`.\`${tableName}\`;`);
-    if (rows.length !== 1) {
-      throw new Error("Unexpected number of rows.");
+const execute = async (connection: Connection, databaseName: string, statement: string): Promise<ExecutionResult> => {
+  let conn: mysql.Connection | null = null;
+  try {
+    conn = await getMySQLConnection(connection);
+    
+    // 确保使用正确的数据库
+    await conn.query(`USE ??`, [databaseName]);
+    
+    const [rows] = await conn.query(statement);
+    const executionResult: ExecutionResult = {
+      rawResult: [],
+      affectedRows: 0,
+    };
+
+    if (Array.isArray(rows)) {
+      executionResult.rawResult = rows;
+    } else if (rows && typeof rows === 'object') {
+      executionResult.affectedRows = (rows as any).affectedRows || 0;
     }
 
-    SchemaList[0].tables.push({ name: tableName, structure: rows[0]["Create Table"] || "" });
+    return executionResult;
+  } catch (error: any) {
+    return {
+      error: error.message,
+      rawResult: [],
+      affectedRows: 0
+    };
+  } finally {
+    if (conn) {
+      await conn.end().catch(() => {});
+    }
   }
-  return SchemaList;
+};
+
+const getDatabases = async (connection: Connection): Promise<string[]> => {
+  let conn: mysql.Connection | null = null;
+  try {
+    console.log("Getting databases for connection:", connection.host);
+    conn = await getMySQLConnection(connection);
+    
+    // First try to get all databases
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SHOW DATABASES"
+    );
+    
+    const databases = rows.map(row => Object.values(row)[0] as string)
+      .filter(dbName => !systemDatabases.includes(dbName));
+    
+    console.log("Found databases:", databases);
+    return databases;
+  } catch (error: any) {
+    console.error("Failed to get databases:", error);
+    throw new Error(`Failed to get databases: ${error.message}`);
+  } finally {
+    if (conn) {
+      await conn.end().catch(() => {});
+    }
+  }
 };
 
 const newConnector = (connection: Connection): Connector => {

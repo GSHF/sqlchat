@@ -90,7 +90,7 @@ const CreateConnectionModal = (props: Props) => {
   const [sslType, setSSLType] = useState<SSLType>("preferred");
   const [selectedSSLField, setSelectedSSLField] = useState<SSLFieldType>("ca");
   const [isRequesting, setIsRequesting] = useState(false);
-  const showDatabaseField = connection.engineType === Engine.PostgreSQL;
+  const showDatabaseField = true;
   const isEditing = editConnection !== undefined;
   const allowSave = connection.title !== "" && connection.host !== "" && connection.username !== "";
 
@@ -217,6 +217,8 @@ const CreateConnectionModal = (props: Props) => {
         connection: connection,
         database: head(databaseList),
       });
+      toast.success(isEditing ? "Connection updated successfully" : "Connection created successfully");
+      props.close();
     } catch (error) {
       console.error(error);
       setIsRequesting(false);
@@ -225,7 +227,6 @@ const CreateConnectionModal = (props: Props) => {
     }
 
     setIsRequesting(false);
-    close();
   };
 
   const handleDeleteConnection = () => {

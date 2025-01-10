@@ -8,23 +8,25 @@ import { countTextTokens, generateUUID } from "@/utils";
 interface ConnectionContext {
   connection: Connection;
   database?: Database;
+  selectedDatabase?: string;  // 添加当前选择的数据库名
 }
 
-const samplePGConnection: Connection = {
-  id: "sample-pg",
-  title: "Sample PostgreSQL",
-  engineType: Engine.PostgreSQL,
-  host: "ep-throbbing-thunder-042250-pooler.us-west-2.aws.neon.tech",
-  port: "5432",
-  username: "sqlchat_readonly",
-  password: "U5rI8tJMiKWp",
-  database: "sample-employee",
+const sampleConnection: Connection = {
+  id: "sample",
+  title: "Sample Connection",
+  engineType: Engine.MySQL,
+  host: "",
+  port: "",
+  username: "",
+  password: "",
+  database: ""
 };
 
 interface ConnectionState {
   connectionList: Connection[];
   databaseList: Database[];
   currentConnectionCtx?: ConnectionContext;
+  isRequestingDatabase: boolean;
   createConnection: (connection: Connection) => Connection;
   setCurrentConnectionCtx: (connectionCtx: ConnectionContext | undefined) => void;
   getOrFetchDatabaseList: (connection: Connection, skipCache?: boolean) => Promise<Database[]>;
@@ -32,13 +34,16 @@ interface ConnectionState {
   getConnectionById: (connectionId: string) => Connection | undefined;
   updateConnection: (connectionId: string, connection: Partial<Connection>) => void;
   clearConnection: (filter: (connection: Connection) => boolean) => void;
+  updateSelectedDatabase: (databaseName: string) => void;  // 添加新方法
 }
 
 export const useConnectionStore = create<ConnectionState>()(
   persist(
     (set, get) => ({
-      connectionList: [samplePGConnection],
+      connectionList: [],
       databaseList: [],
+      currentConnectionCtx: undefined,
+      isRequestingDatabase: false,
       createConnection: (connection: Connection) => {
         const createdConnection = {
           ...connection,
@@ -50,80 +55,127 @@ export const useConnectionStore = create<ConnectionState>()(
         }));
         return createdConnection;
       },
-      setCurrentConnectionCtx: (connectionCtx: ConnectionContext | undefined) =>
+      setCurrentConnectionCtx: (connectionCtx: ConnectionContext | undefined) => {
+        // 如果提供了新的上下文，确保selectedDatabase字段有值
+        if (connectionCtx) {
+          connectionCtx.selectedDatabase = connectionCtx.database?.name || connectionCtx.connection.database;
+        }
         set((state) => ({
           ...state,
           currentConnectionCtx: connectionCtx,
-        })),
+        }));
+      },
       getOrFetchDatabaseList: async (connection: Connection, skipCache = false) => {
         const state = get();
+        set((state) => ({ ...state, isRequestingDatabase: true }));
+        console.log('Fetching database list for connection:', connection);
 
-        if (!skipCache) {
-          if (state.databaseList.some((database) => database.connectionId === connection.id)) {
-            return state.databaseList.filter((database) => database.connectionId === connection.id);
+        try {
+          if (!skipCache) {
+            const cachedDatabases = state.databaseList.filter(
+              (database) => database.connectionId === connection.id
+            );
+            if (cachedDatabases.length > 0) {
+              console.log('Using cached databases:', cachedDatabases);
+              set((state) => ({ ...state, isRequestingDatabase: false }));
+              return cachedDatabases;
+            }
           }
+
+          const { data } = await axios.post<string[]>("/api/connection/db", {
+            connection,
+          });
+          console.log('Received databases from API:', data);
+
+          const fetchedDatabaseList = data.map(
+            (dbName) =>
+              ({
+                connectionId: connection.id,
+                name: dbName,
+                schemaList: [],
+              } as Database)
+          );
+
+          // Remove old databases for this connection
+          const otherDatabases = state.databaseList.filter(
+            (database) => database.connectionId !== connection.id
+          );
+
+          const newDatabaseList = [...fetchedDatabaseList, ...otherDatabases];
+          console.log('Setting new database list:', newDatabaseList);
+
+          set((state) => ({
+            ...state,
+            databaseList: newDatabaseList,
+            isRequestingDatabase: false,
+          }));
+
+          return fetchedDatabaseList;
+        } catch (error) {
+          console.error('Error fetching databases:', error);
+          set((state) => ({ ...state, isRequestingDatabase: false }));
+          throw error;
         }
-
-        const { data } = await axios.post<string[]>("/api/connection/db", {
-          connection,
-        });
-
-        const fetchedDatabaseList = data.map(
-          (dbName) =>
-            ({
-              connectionId: connection.id,
-              name: dbName,
-              schemaList: [],
-            } as Database)
-        );
-        const databaseList = uniqBy(
-          [...fetchedDatabaseList, ...state.databaseList],
-          (database) => `${database.connectionId}_${database.name}`
-        );
-        set((state) => ({
-          ...state,
-          databaseList,
-        }));
-        return databaseList.filter((database) => database.connectionId === connection.id);
       },
       getOrFetchDatabaseSchema: async (database: Database, skipCache = false) => {
         const state = get();
+        console.log('Getting schema for database:', database.name);
 
         if (!skipCache) {
           const db = state.databaseList.find((db) => db.connectionId === database.connectionId && db.name === database.name);
-          if (db !== undefined && Array.isArray(db.schemaList) && db.schemaList.length !== 0) {
+          if (db?.schemaList && db.schemaList.length > 0) {
+            console.log('Using cached schema:', db.schemaList);
             return db.schemaList;
           }
         }
 
         const connection = state.connectionList.find((connection) => connection.id === database.connectionId);
         if (!connection) {
+          console.error('Connection not found for database:', database);
           return [];
         }
 
-        const { data: result } = await axios.post<ResponseObject<Schema[]>>("/api/connection/db_schema", {
-          connection,
-          db: database.name,
-        });
-
-        if (result.message) {
-          throw result.message;
-        }
-
-        const fetchedTableList: Schema[] = result.data;
-        fetchedTableList.forEach((schema) => {
-          schema.tables.forEach((table) => {
-            table.token = countTextTokens(table.structure);
+        try {
+          console.log('Fetching schema from API for database:', database.name);
+          const { data: result } = await axios.post<ResponseObject<Schema[]>>("/api/connection/db_schema", {
+            connection: {
+              ...connection,
+              database: database.name // Make sure to pass the database name
+            },
+            db: database.name,
           });
-        });
-        set((state) => ({
-          ...state,
-          databaseList: state.databaseList.map((item) =>
-            item.connectionId === database.connectionId && item.name === database.name ? { ...item, schemaList: fetchedTableList } : item
-          ),
-        }));
 
-        return fetchedTableList;
+          console.log('API response:', result);
+          if (!result.data) {
+            console.error('No schema data in API response');
+            return [];
+          }
+
+          const fetchedTableList: Schema[] = result.data;
+          console.log('Fetched table list:', fetchedTableList);
+
+          // Update database list with schema
+          const updatedDatabaseList = state.databaseList.map((db) => {
+            if (db.connectionId === database.connectionId && db.name === database.name) {
+              return {
+                ...db,
+                schemaList: fetchedTableList,
+              };
+            }
+            return db;
+          });
+
+          console.log('Updating database list with schema');
+          set((state) => ({
+            ...state,
+            databaseList: updatedDatabaseList,
+          }));
+
+          return fetchedTableList;
+        } catch (error) {
+          console.error('Error fetching schema:', error);
+          return [];
+        }
       },
       getConnectionById: (connectionId: string) => {
         return get().connectionList.find((connection) => connection.id === connectionId);
@@ -131,7 +183,17 @@ export const useConnectionStore = create<ConnectionState>()(
       updateConnection: (connectionId: string, connection: Partial<Connection>) => {
         set((state) => ({
           ...state,
-          connectionList: state.connectionList.map((item) => (item.id === connectionId ? { ...item, ...connection } : item)),
+          connectionList: state.connectionList.map((item) => {
+            if (item.id === connectionId) {
+              const updatedConnection = { ...item, ...connection };
+              // If this is the current connection, update currentConnectionCtx as well
+              if (state.currentConnectionCtx?.connection.id === connectionId) {
+                state.currentConnectionCtx.connection = updatedConnection;
+              }
+              return updatedConnection;
+            }
+            return item;
+          }),
         }));
       },
       clearConnection: (filter: (connection: Connection) => boolean) => {
@@ -139,6 +201,20 @@ export const useConnectionStore = create<ConnectionState>()(
           ...state,
           connectionList: state.connectionList.filter(filter),
         }));
+      },
+      updateSelectedDatabase: (databaseName: string) => {
+        set((state) => {
+          if (!state.currentConnectionCtx) {
+            return state;
+          }
+          return {
+            ...state,
+            currentConnectionCtx: {
+              ...state.currentConnectionCtx,
+              selectedDatabase: databaseName,
+            },
+          };
+        });
       },
     }),
     {

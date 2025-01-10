@@ -19,7 +19,20 @@ const nextConfig = {
   // Prevent ESLint errors.
   eslint: {
     ignoreDuringBuilds: true
-  }
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        dns: false,
+        fs: false,
+        net: false,
+        tls: false,
+        pg: false,
+      };
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
