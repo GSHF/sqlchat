@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerAPIStore } from '@/store/api';
+import { saveServerState } from '@/store/api';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -22,7 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Delete the API
-    store.getState().apis = store.getState().apis.filter(a => a.id !== id);
+    storeState.apis = storeState.apis.filter(a => a.id !== id);
+    
+    // 保存状态到文件
+    await saveServerState();
     
     return res.status(200).json({ 
       message: 'API deleted successfully',

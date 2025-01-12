@@ -1,155 +1,35 @@
 {
   "apis": [
     {
-      "name": "ccccccccc",
+      "name": "sss098",
       "description": "",
-      "url": "/api/sql/city;?connectionInfo=Vn%2BAOcuN2VENrqzApg41CEONWsk4CnvkITZdvoazHftnaP4i53sEDH9GYxXPaATI33irpry%2Bm8AcPai3EhKO8gPYbGZ7AMYix3n3NG6Hql8ojPg%2B6auGxGl3fBsGqN%2F0AgCqX5jEnJMys13excPD1KSkN%2BP1u%2BoPz724anV68Z0l72ro88pDW3HUPaD%2B6CYVuujrXjNOaJ5ePpl2HTHv9xUY%2Bi52Kk8B2jgemfbkJCZtZZP4xrWOtWQ8%2Bb6uxm5T73g%2BotTtLRECzj7%2FlurJOw%3D%3D&query=SELECT%20*%20FROM%20city%3B",
-      "sqlQuery": "SELECT * FROM city;",
-      "connectionId": "{\"id\":\"04e75675-27e1-4cab-bdd6-cea57c021156\",\"title\":\"uuu009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"sakila\"}",
-      "tableName": "city;",
-      "database": "sakila",
-      "id": "c70f52cc-047e-468e-a7aa-febae582c45f",
-      "createdAt": "2025-01-10T16:44:24.387Z",
-      "metrics": {
-        "successCalls": 57,
-        "failedCalls": 0,
-        "averageResponseTime": 28,
-        "currentConcurrentCalls": 0,
-        "maxConcurrentCalls": 1,
-        "totalCalls": 56
-      },
-      "status": "active"
-    },
-    {
-      "name": "tty6789",
-      "description": "",
-      "url": "/api/sql/city;?connectionInfo=rIZM98EBYz8AyfOkHvBPzXQ8XIy1vtaMhue9%2BQSiD%2BcEKxtbrHjYElsaz0wqHlXOBEBfgw9pVrpLggxZcC6ZKini2eAmyIFvddMF7OCiYM8EMwuf1c64fOKXegYGuFslrxyWfjkFsfPZa23qgDHO1H836hjhKN%2F7I1UVpHt4ghTSF5Iq5EkpGmJN8JNAO%2FpNlP7d2niDmTIXtX2PNPZZwc9orBqI2jI1z2vsJLGCBgOEkZeLrooNtpuiQ%2BLJjxcKbhMnRGSOO%2BhHB3Z%2BZWxWCQ%3D%3D&query=SELECT%20*%20FROM%20city%3B",
-      "sqlQuery": "SELECT * FROM city;",
-      "connectionId": "{\"id\":\"04e75675-27e1-4cab-bdd6-cea57c021156\",\"title\":\"uuu009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"sakila\"}",
-      "tableName": "city;",
-      "database": "sakila",
-      "id": "2906670c-9a01-4e53-89b8-806b53c2ac56",
-      "createdAt": "2025-01-10T16:46:42.668Z",
-      "metrics": {
-        "successCalls": 17,
-        "failedCalls": 0,
-        "averageResponseTime": 19,
-        "currentConcurrentCalls": 0,
-        "maxConcurrentCalls": 1,
-        "totalCalls": 16
-      },
-      "status": "inactive"
-    },
-    {
-      "name": "city009",
-      "description": "",
-      "url": "/api/sql/city;?connectionInfo=5QAqGHea0YUx%2BIapW1RJvTim%2FS50Wwr2f4dkiqgE2EfOOQQ54e2qDIsM3pB22FYhbzHTslxRivXvIIAo8GToyXulREbhbb5mJQXuLI7S4bueVU%2FbfKvZvEKjApJtGObmk8W4VFv8Y3aumAzpSJKKSHKxLLritYzARPCn3BImGJKtOxw8JDX5zfAhZf%2FmEI5uAUikHfRpM7D5NPVjg3yU4uH9c54aS5wtDmGw5OzIgDhsA6rGFlPzERfHI4UaPkqTPPLFPlpW6I5r2gRRqKXy7g%3D%3D&query=SELECT%20*%20FROM%20city%3B",
-      "sqlQuery": "SELECT * FROM city;",
-      "connectionId": "{\"id\":\"04e75675-27e1-4cab-bdd6-cea57c021156\",\"title\":\"uuu009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"sakila\"}",
-      "tableName": "city;",
-      "database": "sakila",
-      "id": "122e6511-cccf-4461-bcde-e635c437f7e7",
-      "createdAt": "2025-01-10T17:33:58.018Z",
-      "metrics": {
-        "successCalls": 8,
-        "failedCalls": 0,
-        "averageResponseTime": 12,
-        "currentConcurrentCalls": 0,
-        "maxConcurrentCalls": 1,
-        "totalCalls": 7
-      },
-      "status": "inactive"
-    },
-    {
-      "name": "aaaa",
-      "description": "",
-      "url": "/api/sql/city;?connectionInfo=lHd3%2FzlC1GVpXsxb2wO75lcFqQXDxHhoO2m%2Fp%2BELuKr2fN7YRugU3rZIWg80RgllBY%2BqTivl22k9SJ4HFa6d9a9mF1469JjDNF8zl9EVwNP2G%2BUQ1xUfB0BRAVVFFkteh7e9WwHgs%2FQLaF3XaQdXCooaC5a%2FxXKF%2FdeWA%2Ft7ekw%2FwAH4NRYmS29xTx5A4k4WBkzpH2Bu2fvHViwpkPDSAXNSWqsyoLS3rcSVVnMsaR6X789nkQAvCXsF5iamvyKyXi%2FqOEhtCRf3Iy4UEQl8mw%3D%3D&query=SELECT%20*%20FROM%20city%3B",
-      "sqlQuery": "SELECT * FROM city;",
-      "connectionId": "{\"id\":\"04e75675-27e1-4cab-bdd6-cea57c021156\",\"title\":\"uuu009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"sakila\"}",
-      "tableName": "city;",
-      "database": "sakila",
-      "id": "859faa74-2630-4633-9cc0-f371449f80a2",
-      "createdAt": "2025-01-10T17:41:10.788Z",
-      "metrics": {
-        "successCalls": 2,
-        "failedCalls": 0,
-        "averageResponseTime": 15,
-        "currentConcurrentCalls": 0,
-        "maxConcurrentCalls": 1,
-        "totalCalls": 1
-      },
-      "status": "inactive"
-    },
-    {
-      "name": "ddddd",
-      "description": "",
-      "url": "/api/sql/city;?connectionInfo=%2BDBZ%2F6ateuOXP97QQM%2FaS2EurCsHP22JdbZlYUgVThtLw3Sbup6oD96d8CJLGKREb12q1b6giYrAqyrTtLiH9VV0on5N2qIAxEF0dBlA%2FsFM%2F0M2%2Bi8ZwA2lhnVxnsJc9Nex7vZWyxBm3ceY1j4XicjaRsWxi9AI9zJPHcsJW9CzLjgi9oU3Pneh36OwE9vGZT0Lej0miAjazOjOh53S1U4lXbpZ0MhW2M3J5zuukojWFpeiWaR%2BvXpvQdKtNmX885nRpjAqpsMQXvHVpevyZQ%3D%3D&query=SELECT%20*%20FROM%20city%3B",
-      "sqlQuery": "SELECT * FROM city;",
-      "connectionId": "{\"id\":\"04e75675-27e1-4cab-bdd6-cea57c021156\",\"title\":\"uuu009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"sakila\"}",
-      "tableName": "city;",
-      "database": "sakila",
-      "id": "d6c4d318-d9f7-4123-8328-02ecd3230cbd",
-      "createdAt": "2025-01-10T17:58:24.428Z",
-      "metrics": {
-        "successCalls": 0,
-        "failedCalls": 0,
-        "averageResponseTime": 0,
-        "currentConcurrentCalls": 0,
-        "maxConcurrentCalls": 0,
-        "totalCalls": 0
-      },
-      "status": "active"
-    },
-    {
-      "name": "break009",
-      "description": "",
-      "url": "/api/sql/breaker;?connectionInfo=TK8%2B%2FlThRXy72AL62q0qeEqFFZHs0Qwihqjmm3Dh0CkoUrqBJZ6KmYv8E%2FLhaAQXOl6sLVhTBYZdbRY4lxYOd9wyoLT3p8XID8e0uj%2BxksMrWNDsVqknzskTKY%2BvV5dx%2FnJdZupWFDdA9dl4u7I9a7mDGqAf4taK1bvwE1DgWNP30FIxW9A%2BIu9ojDhUsKmM3VZ137zGSm12zJ89OsvZED4s7d35ikwT6hrsANejqtUs4iX2SK3UBWk7it7CsbUjN5mYW4rHjm9QDgkdF74idg%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
+      "url": "/api/sql/breaker;?connectionInfo=Oh2PGjQAyDc%2FewM20LHx8G54N1hWFsLmxT06fnttX6GaRqqAPiI%2BDH%2FcLGzPvt7oGug7Sp2RGMH9JiJAyOEqw0EoiqghQP2VMtt4LSERyE8JGpN0IaGQ%2Fb8PSHCeJutopGnnoG%2F6XMqNW0FbH1foKbnls%2Bw6hm3wZ4MkRx2s2dgp0jXU80QNW0CuZEAJb0%2FyEW2GzfZ8P5Im6kYDtwmvh2dDiknIatQvsFS2AJA5wJMfx38BWkGyGQdgvnrYMsBLFvvcrO7dIRhJD85MrfsIdQ%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
       "sqlQuery": "SELECT * FROM breaker;",
       "connectionId": "{\"id\":\"98eb10c5-0a57-4d0e-8ce1-450f3d811ebb\",\"title\":\"mysql009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
       "tableName": "breaker;",
       "database": "tumo",
-      "id": "c400aa7b-ccec-46a3-8212-6a706f6c3c16",
-      "createdAt": "2025-01-12T03:05:14.592Z",
+      "id": "ead5b144-424a-4df0-94b1-5db120835dc7",
+      "createdAt": "2025-01-12T03:58:06.118Z",
       "metrics": {
         "successCalls": 3,
         "failedCalls": 0,
-        "averageResponseTime": 11,
+        "averageResponseTime": 7,
         "currentConcurrentCalls": 0,
         "maxConcurrentCalls": 1,
         "totalCalls": 2
       },
-      "status": "active"
+      "status": "inactive"
     },
     {
-      "name": "ssss",
+      "name": "ddr12345",
       "description": "",
-      "url": "/api/sql/breaker;?connectionInfo=17wmCWw8mGctqSnWFGwfggHHkFgf3AftD9iOINZQHJ40vIST%2FCpj5VZ1FudBdQLSCX4lzga5d%2Bm3At7%2BYG9H%2BecRLDWnvcn9sKbgUYtBTX2rEQ2nEjXePcDf6T1FNlg7PUTPDy5WBskTUPKSVSQ1219%2FYKsrU7QkCvjiBBdv4HkTG957uk0uIU4lujgboKWdGY5EeFAMgzjYfovi74baI344iydlkNkx1PZep3NH8ESdkEa0r0HVJXNzIP0wiNfKV90izZrRKuCHIyPR5ASCrQ%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
+      "url": "/api/sql/breaker;?connectionInfo=fP9iFaptAKJBUKoM%2BFS%2BJAyc0V4vVx7sfz501VhVC%2F4slSOXO9rH91n0BfPIWt8OQ%2BIdAtUeM7HSaknQNz8C3CpfwP4qneBvTc5XioDUihtZAEHcxsItfrgY91P8dl%2Bl0yG%2Ftlcad9xg%2BQNgzraDuk%2Fv5xVUZGrz2ZrewZHyY805Nabn6ZXhj1pQ92qzHpVnDMgh35f%2B706%2Fs1MZy4qy9Wrl8rstWqJkycqZThpws55dvZ9qrAI%2Fr0te9yZPx30m17KdTfw4cqrREX2o9Jx7yQ%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
       "sqlQuery": "SELECT * FROM breaker;",
       "connectionId": "{\"id\":\"98eb10c5-0a57-4d0e-8ce1-450f3d811ebb\",\"title\":\"mysql009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
       "tableName": "breaker;",
       "database": "tumo",
-      "id": "e4cf52d2-3436-47ff-b2bf-1ceaaaa54998",
-      "createdAt": "2025-01-12T03:36:44.322Z",
-      "metrics": {
-        "successCalls": 0,
-        "failedCalls": 0,
-        "averageResponseTime": 0,
-        "currentConcurrentCalls": 0,
-        "maxConcurrentCalls": 0,
-        "totalCalls": 0
-      },
-      "status": "active"
-    },
-    {
-      "name": "ssss345",
-      "description": "",
-      "url": "/api/sql/breaker;?connectionInfo=qC9JlirUzdgv%2FQGZgccDmcAnBSQe8ayQLjNhuNB%2FclUQfHkbADBQCTzoTssKdVRtblwFQiqwrCXew0xRUcAQYySvXn0FB%2BC%2F%2FbmWeAsZbGzkmhfqYGr9BdOla9haaXCZ6NJiipkJPFSufRLuc6dWkgEBwPr%2BVj6u7OJJc9BxWJA7Oga5eapoa40wu9qShfuMBUHYdwnu6BYTZEVyyunMFYPvvL%2BZCjyk%2FUPp23SY7uf1qRtZWFlvIF67%2FLPHvDlZo0cID%2F0qMy8eobeGpsg32A%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
-      "sqlQuery": "SELECT * FROM breaker;",
-      "connectionId": "{\"id\":\"98eb10c5-0a57-4d0e-8ce1-450f3d811ebb\",\"title\":\"mysql009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
-      "tableName": "breaker;",
-      "database": "tumo",
-      "id": "c7bbd298-2134-4406-9417-68aa1755a3b4",
-      "createdAt": "2025-01-12T03:46:07.063Z",
+      "id": "f186f81d-62f9-4ea9-a579-72612f162b97",
+      "createdAt": "2025-01-12T04:10:45.431Z",
       "metrics": {
         "successCalls": 0,
         "failedCalls": 0,

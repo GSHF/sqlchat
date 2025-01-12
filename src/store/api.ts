@@ -161,9 +161,9 @@ const loadServerState = () => {
 };
 
 // 保存服务器状态到文件
-const saveServerState = () => {
+export const saveServerState = async () => {
   try {
-    const fs = require('fs');
+    const fs = require('fs').promises;  // 使用 promises API
     const path = require('path');
     const statePath = path.join(process.cwd(), 'server-state.json');
     
@@ -175,10 +175,11 @@ const saveServerState = () => {
       }))
     };
     
-    fs.writeFileSync(statePath, JSON.stringify(stateToSave, null, 2), 'utf8');
+    await fs.writeFile(statePath, JSON.stringify(stateToSave, null, 2), 'utf8');
     console.log('Saved server state:', serverState.apis.length, 'APIs');
   } catch (err) {
     console.error('Error saving server state:', err);
+    throw err;  // 重新抛出错误以便调用者处理
   }
 };
 
@@ -203,6 +204,7 @@ const createStore = () => {
   return create<APIStore>()(
     persist(
       (set, get) => ({
+
         apis: [],
         addAPI: (api) => {
           const newApi: PublishedAPI = {
@@ -220,6 +222,7 @@ const createStore = () => {
             status: 'active',
           };
           set((state) => ({
+
             apis: [...state.apis, newApi],
           }));
           return newApi;
