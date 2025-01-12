@@ -1,0 +1,91 @@
+FROM mcr.microsoft.com/mirror/docker/library/node:18-alpine AS base
+
+# Install dependencies only when needed
+FROM mcr.microsoft.com/mirror/docker/library/node:18-alpine AS deps
+# Install OpenSSL and other required dependencies
+RUN apk add --no-cache libc6-compat openssl openssl-dev
+
+WORKDIR /app
+
+# 配置 npm 镜像源为淘宝镜像，加快内网构建速度
+RUN npm config set registry https://registry.npmmirror.com/
+
+# Install dependencies based on the preferred package manager
+COPY package.json pnpm-lock.yaml* ./
+RUN npm install -g pnpm
+RUN pnpm install --frozen-lockfile
+
+# Rebuild the source code only when needed
+FROM mcr.microsoft.com/mirror/docker/library/node:18-alpine AS builder
+WORKDIR /app
+
+# Install pnpm and required system dependencies
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    npm install -g pnpm && \
+    apk add --no-cache openssl openssl-dev
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Environment variables must be present at build time
+ENV NODE_ENV=production
+ENV NEXTAUTH_SECRET=c8350c0bc49c8a1a0e7c9a83a0e6c5c1e2c0b9d8f4a7e3b1d6c9a2f5e8d7b4a
+ENV NEXTAUTH_URL=http://localhost:3000
+ENV NEXT_PUBLIC_QWEN_ENDPOINT=https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+ENV NEXT_PUBLIC_QWEN_APP_ID=8fb1bd5df3b24265bcfff855652e3c9a
+ENV NEXT_PUBLIC_QWEN_SECRET_KEY=41514d28b825409468b0241dc4a672ab
+
+# Disable memory limit during build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Build the application
+RUN pnpm run build
+
+# Production image, copy all the files and run next
+FROM mcr.microsoft.com/mirror/docker/library/node:18-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Install OpenSSL in the final stage
+RUN apk add --no-cache openssl openssl-dev
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy necessary files
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/prisma ./prisma
+
+# Install pnpm and regenerate Prisma client
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    npm install -g pnpm && \
+    pnpm prisma generate
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Copy the built Next.js application
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["pnpm", "start"]
