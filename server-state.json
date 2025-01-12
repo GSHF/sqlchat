@@ -11,14 +11,14 @@
       "id": "ead5b144-424a-4df0-94b1-5db120835dc7",
       "createdAt": "2025-01-12T03:58:06.118Z",
       "metrics": {
-        "successCalls": 3,
+        "successCalls": 6,
         "failedCalls": 0,
-        "averageResponseTime": 7,
+        "averageResponseTime": 8,
         "currentConcurrentCalls": 0,
         "maxConcurrentCalls": 1,
-        "totalCalls": 2
+        "totalCalls": 5
       },
-      "status": "inactive"
+      "status": "active"
     },
     {
       "name": "ddr12345",
@@ -31,14 +31,34 @@
       "id": "f186f81d-62f9-4ea9-a579-72612f162b97",
       "createdAt": "2025-01-12T04:10:45.431Z",
       "metrics": {
-        "successCalls": 0,
+        "successCalls": 3,
         "failedCalls": 0,
-        "averageResponseTime": 0,
+        "averageResponseTime": 8,
         "currentConcurrentCalls": 0,
-        "maxConcurrentCalls": 0,
-        "totalCalls": 0
+        "maxConcurrentCalls": 1,
+        "totalCalls": 2
       },
       "status": "active"
+    },
+    {
+      "name": "bay",
+      "description": "",
+      "url": "/api/sql/bay;?connectionInfo=X7RrtSLXksJchIAeVukht8A38WOkaI59t2ELEd4ISdGBsmeMZsHy77v1HJty%2BNj7udSa4sTr1SE2IgVcnKauwTM7Vp%2B90Yl2JsdAMI1UeMNj6a8xH5wAYvoCxAAL0Ya4r1ta9eb6fWIW%2Ff3OqKS0t43gJVG4h94jGNHzD1%2FsYyQh%2BWnV0G6Qeu6TOBG57gDB6IU%2FjQrTG1OTUAMC81Aj2Gm1JmPP5tJ%2BmWnMwldHLYVLo05JOWczcPT6DQI33oL8p82k7hbgvAxZ9gTgMFzeFw%3D%3D&query=SELECT%20*%20FROM%20bay%3B",
+      "sqlQuery": "SELECT * FROM bay;",
+      "connectionId": "{\"id\":\"98eb10c5-0a57-4d0e-8ce1-450f3d811ebb\",\"title\":\"mysql009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "bay;",
+      "database": "tumo",
+      "id": "e9808da4-4119-449c-83a3-e30f9589deb0",
+      "createdAt": "2025-01-12T04:25:42.856Z",
+      "metrics": {
+        "successCalls": 1,
+        "failedCalls": 0,
+        "averageResponseTime": 8,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 1,
+        "totalCalls": 0
+      },
+      "status": "inactive"
     }
   ]
 }

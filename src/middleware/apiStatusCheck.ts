@@ -54,8 +54,8 @@ export function withAPIStatusCheck(handler: NextApiHandler): NextApiHandler {
       }
     } else {
       // 如果没有指定 API ID，通过 URL 匹配
-      // 找到完全匹配 URL 的 API
-      const exactMatch = state.apis.find(api => {
+      // 找到所有匹配 URL 的 API
+      const matchingApis = state.apis.filter(api => {
         const apiUrlPath = api.url.split('?')[0];
         const normalizedApiPath = normalizePathForMatch(apiUrlPath);
         const matches = normalizedApiPath === normalizedRequestPath;
@@ -66,21 +66,22 @@ export function withAPIStatusCheck(handler: NextApiHandler): NextApiHandler {
           matches,
           status: api.status
         });
-        return matches;  // 先只匹配 URL，不考虑状态
+        return matches;
       });
 
-      if (!exactMatch) {
+      if (matchingApis.length === 0) {
         return res.status(404).json({ error: 'No matching API found for this URL' });
       }
 
-      // 检查匹配到的 API 状态
-      if (exactMatch.status === 'inactive') {
+      // 检查是否有任何匹配的 API 处于活动状态
+      const activeApi = matchingApis.find(api => api.status === 'active');
+      if (!activeApi) {
         return res.status(403).json({ 
-          error: `API ${exactMatch.id} matching this URL is currently inactive` 
+          error: 'All matching APIs for this URL are currently inactive' 
         });
       }
 
-      matchingApi = exactMatch;
+      matchingApi = activeApi;
     }
 
     console.log(`Found matching API: ${matchingApi.id} (${matchingApi.status})`);
