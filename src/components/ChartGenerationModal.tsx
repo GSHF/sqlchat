@@ -3,14 +3,12 @@ import { VegaLite } from 'react-vega';
 import Modal from './kit/Modal';
 
 interface ChartGenerationModalProps {
-  isOpen: boolean;
   onClose: () => void;
   data: any[];
   columns: string[];
 }
 
 const ChartGenerationModal: React.FC<ChartGenerationModalProps> = ({
-  isOpen,
   onClose,
   data,
   columns,
@@ -173,7 +171,7 @@ const ChartGenerationModal: React.FC<ChartGenerationModalProps> = ({
   }, {});
 
   return (
-    <Modal title="生成图表" onClose={onClose} isOpen={isOpen}>
+    <Modal title="生成图表" onClose={onClose}>
       <div className="flex h-[600px]">
         {/* 左侧配置区 */}
         <div className="w-64 border-r border-gray-200 dark:border-zinc-700 p-4 space-y-4">

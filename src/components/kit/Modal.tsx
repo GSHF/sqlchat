@@ -7,14 +7,13 @@ interface Props {
   children: ReactNode;
   onClose: () => void;
   className?: string;
-  isOpen: boolean;
 }
 
 const Modal = (props: Props) => {
-  const { children, title, onClose, className, isOpen } = props;
+  const { children, title, onClose, className } = props;
 
   return (
-    <ModalUI className="!z-[9999]" open={isOpen} onClose={onClose}>
+    <ModalUI className="!z-[9999]" open={true} onClose={onClose}>
       <div
         className={`${
           className || ""

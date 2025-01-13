@@ -57,12 +57,13 @@ const DataTableView = (props: Props) => {
         pagination
         responsive
       />
-      <ChartGenerationModal
-        isOpen={showChartModal}
-        onClose={() => setShowChartModal(false)}
-        data={rawResults}
-        columns={columns.map(col => col.name)}
-      />
+      {showChartModal && (
+        <ChartGenerationModal
+          onClose={() => setShowChartModal(false)}
+          data={rawResults}
+          columns={columns.map(col => col.name)}
+        />
+      )}
     </>
   );
 };

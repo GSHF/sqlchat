@@ -36,6 +36,7 @@ const ConnectionSidebar = () => {
     currentConnectionCtx?.connection.engineType === Engine.PostgreSQL || currentConnectionCtx?.connection.engineType === Engine.MSSQL;
   const selectedTableNameList: string[] = currentConversation?.selectedTableNameList || [];
   const selectedSchemaName: string = currentConversation?.selectedSchemaName || "";
+  const showQuota = !settingStore.setting.openAIApiConfig?.key && hasFeature("quota");
 
   useEffect(() => {
     console.log('Component mounted');
@@ -295,7 +296,7 @@ const ConnectionSidebar = () => {
             </div>
           </div>
           <div className="relative p-4 pb-0 w-64 h-full overflow-y-auto flex flex-col justify-start items-start bg-gray-100 dark:bg-zinc-700">
-            <img className="px-4 shrink-0" src="/chat-logo.webp" alt="" />
+            <img className="px-4 shrink-0" src="/newlogo.jpg" alt="" />
             <div className="w-full grow">
               {connectionStore.isRequestingDatabase ? (
                 <div className="w-full h-12 flex flex-row justify-start items-center px-4 sticky top-0 border z-1 mb-4 mt-4 rounded-lg text-sm text-gray-600 dark:text-gray-400">
@@ -376,18 +377,21 @@ const ConnectionSidebar = () => {
             </div>
 
             <div className="sticky bottom-0 w-full flex flex-col justify-center bg-gray-100 dark:bg-zinc-700 backdrop-blur bg-opacity-60 pb-4 py-2">
-              {!settingStore.setting.openAIApiConfig?.key && hasFeature("quota") && (
-                <div className="mb-4">
+              {showQuota && (
+                <div className="flex flex-col gap-2">
                   <QuotaView />
                 </div>
               )}
               <Link
                 href="/api-management"
-                className="w-full px-3 py-2 rounded-lg text-sm text-left transition-all flex flex-row justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700"
               >
-                <span className="flex items-center">
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-auto text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 7V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14.5 4.5V6.5C14.5 7.6 15.4 8.5 16.5 8.5H18.5" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 13H12" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 17H16" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   API 管理
                 </span>
@@ -395,32 +399,6 @@ const ConnectionSidebar = () => {
                   NEW
                 </span>
               </Link>
-              <a
-                className="dark:hidden"
-                href="https://www.producthunt.com/posts/sql-chat-2?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-sql&#0045;chat&#0045;2"
-                target="_blank"
-              >
-                <img
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=390216&theme=light"
-                  alt="SQL&#0032;Chat - ChatGPT&#0032;powered&#0032;SQL&#0032;client&#0032;for&#0032;Postgres&#0044;&#0032;MySQL&#0032;&#0038;&#0032;SQL&#0032;Server | Product Hunt"
-                  style={{ width: "250px", height: "54px" }}
-                  width="250"
-                  height="54"
-                />
-              </a>
-              <a
-                className="hidden dark:block"
-                href="https://www.producthunt.com/posts/sql-chat-2?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-sql&#0045;chat&#0045;2"
-                target="_blank"
-              >
-                <img
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=390216&theme=dark"
-                  alt="SQL&#0032;Chat - ChatGPT&#0032;powered&#0032;SQL&#0032;client&#0032;for&#0032;Postgres&#0044;&#0032;MySQL&#0032;&#0038;&#0032;SQL&#0032;Server | Product Hunt"
-                  style={{ width: "250px", height: "54px" }}
-                  width="250"
-                  height="54"
-                />
-              </a>
             </div>
           </div>
         </div>

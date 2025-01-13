@@ -11,12 +11,12 @@
       "id": "ead5b144-424a-4df0-94b1-5db120835dc7",
       "createdAt": "2025-01-12T03:58:06.118Z",
       "metrics": {
-        "successCalls": 6,
+        "successCalls": 12,
         "failedCalls": 0,
-        "averageResponseTime": 8,
+        "averageResponseTime": 10,
         "currentConcurrentCalls": 0,
         "maxConcurrentCalls": 1,
-        "totalCalls": 5
+        "totalCalls": 11
       },
       "status": "active"
     },
@@ -31,14 +31,14 @@
       "id": "f186f81d-62f9-4ea9-a579-72612f162b97",
       "createdAt": "2025-01-12T04:10:45.431Z",
       "metrics": {
-        "successCalls": 3,
+        "successCalls": 4,
         "failedCalls": 0,
         "averageResponseTime": 8,
         "currentConcurrentCalls": 0,
         "maxConcurrentCalls": 1,
-        "totalCalls": 2
+        "totalCalls": 3
       },
-      "status": "active"
+      "status": "inactive"
     },
     {
       "name": "bay",
@@ -51,14 +51,54 @@
       "id": "e9808da4-4119-449c-83a3-e30f9589deb0",
       "createdAt": "2025-01-12T04:25:42.856Z",
       "metrics": {
-        "successCalls": 1,
+        "successCalls": 2,
         "failedCalls": 0,
-        "averageResponseTime": 8,
+        "averageResponseTime": 9,
         "currentConcurrentCalls": 0,
         "maxConcurrentCalls": 1,
-        "totalCalls": 0
+        "totalCalls": 1
+      },
+      "status": "active"
+    },
+    {
+      "name": "basevoltage",
+      "description": "",
+      "url": "/api/sql/basevoltage;?connectionInfo=hFW7pWk21ZnPd5lie1smzeL58duSqETWAZsv4%2FsLqaU1CA%2BKoFqRPPGiISZcowAvM45wgpX%2FUdGvQoq14DPaWYIZnliwa7i9lV%2FRTdoVs%2FUZ9h5vu%2Bs6PcN1sexRE4avsuj2GO%2FNSfdFSSbHC8ZyVSsj1VktsXgvKaHfyWCBnLbJ3x6chtOLI9J9N8Z%2BP3pE00EJv7kCfZKfcJOFd%2BlXcGya1YJLO%2FQLedBWzLIKbFnDkslE0a45wPnrhZ%2FAMwdX0lTBLeAlwpNV2MNcNsSHoA%3D%3D&query=SELECT%20*%20FROM%20basevoltage%3B",
+      "sqlQuery": "SELECT * FROM basevoltage;",
+      "connectionId": "{\"id\":\"98eb10c5-0a57-4d0e-8ce1-450f3d811ebb\",\"title\":\"mysql009\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "basevoltage;",
+      "database": "tumo",
+      "id": "0c9e495d-3df0-45e9-a096-7f51d22d25e2",
+      "createdAt": "2025-01-13T09:10:06.824Z",
+      "metrics": {
+        "successCalls": 2,
+        "failedCalls": 0,
+        "averageResponseTime": 9,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 1,
+        "totalCalls": 1
       },
       "status": "inactive"
+    },
+    {
+      "name": "bb001",
+      "description": "",
+      "url": "/api/sql/breaker;?connectionInfo=FW48lZYwcUhsJVnhvoIbN8MNhqsS2S9I0t8zBn5kR2QJqLhTprxx5pgfblkzW0ePpu1LbN1U0hkPsYWO%2FFHltIZZaGtaWXOGBM5jGfWsx4ayoHWEbYjuCtxw6MvlsllvcOXtIf%2BpPvZngklafBmkR1CoqHYbDZp808DTLD3vgvP%2BOd853oqTDlLormCOtHuIDVzrb9jKSa2jr%2BJl88xRg3SILKxCeIX5XDf3OJWyfLQGYBQ0Sg%2BTAk95Dl6oRe4DboL3X2OPVfGLP6Kkndhm5Q%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
+      "sqlQuery": "SELECT * FROM breaker;",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "breaker;",
+      "database": "tumo",
+      "id": "416fdb9e-fc33-4ec1-8702-121411396aea",
+      "createdAt": "2025-01-13T11:25:29.802Z",
+      "metrics": {
+        "successCalls": 0,
+        "failedCalls": 0,
+        "averageResponseTime": 0,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 0,
+        "totalCalls": 0
+      },
+      "status": "active"
     }
   ]
 }

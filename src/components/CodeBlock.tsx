@@ -100,12 +100,12 @@ export const CodeBlock = (props: Props) => {
         {/* API发布模态框 */}
         {showApiModal && currentConnectionCtx && (
           <ApiPublishModal
-            isOpen={showApiModal}
             onClose={() => setShowApiModal(false)}
             connection={currentConnectionCtx.connection}
-            tableName={value.toLowerCase().includes("from") ? value.toLowerCase().split("from")[1].trim().split(" ")[0] : "query"}
             sqlQuery={value}
+            tableName={value.toLowerCase().includes("from") ? value.toLowerCase().split("from")[1].trim().split(" ")[0] : "query"}
             selectedDatabase={selectedDatabase}
+            language={language}
           />
         )}
       </div>

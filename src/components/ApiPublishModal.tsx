@@ -8,21 +8,21 @@ import { generateUUID } from '@/utils';
 import { encrypt } from '@/utils/encryption';
 
 interface Props {
-  isOpen: boolean;
   onClose: () => void;
   connection: Connection;
   sqlQuery: string;
   tableName: string;
   selectedDatabase?: string;
+  language: string;
 }
 
 export const ApiPublishModal: React.FC<Props> = ({
-  isOpen,
   onClose,
   connection,
   sqlQuery,
   tableName,
   selectedDatabase,
+  language,
 }) => {
   const { t } = useTranslation();
   const [apiName, setApiName] = useState('');
@@ -129,12 +129,7 @@ export const ApiPublishModal: React.FC<Props> = ({
   };
 
   return (
-    <Modal
-      title="发布 API"
-      isOpen={isOpen}
-      onClose={onClose}
-      className="w-[600px] max-w-[90vw] bg-zinc-900"
-    >
+    <Modal title="发布API" onClose={onClose}>
       <div className="flex flex-col space-y-4 p-6">
         <div>
           <label className="block text-sm text-gray-300 mb-1">
@@ -184,7 +179,7 @@ export const ApiPublishModal: React.FC<Props> = ({
 
         <div>
           <label className="block text-sm text-gray-300 mb-1">
-            SQL查询语句
+            SQL 查询
           </label>
           <div className="bg-zinc-800 rounded-md border border-gray-700 p-4">
             <pre className="text-sm text-gray-200 whitespace-pre-wrap break-all">

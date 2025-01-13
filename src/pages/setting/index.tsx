@@ -89,7 +89,7 @@ const SettingPage: NextPage = () => {
                   {/* Sidebar component, swap this element with another sidebar if you like */}
                   <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-zinc-800 px-6 pb-2">
                     <Link className="flex pt-4 shrink-0 items-center" href="/">
-                      <img className="w-auto" src="/chat-logo.webp" alt="" />
+                      <img className="w-auto" src="/newlogo.jpg" alt="" />
                     </Link>
                     <nav className="flex flex-1 flex-col">
                       <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -131,7 +131,7 @@ const SettingPage: NextPage = () => {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-700 px-6">
             <Link className="flex pt-4 shrink-0 items-center" href="/">
-              <img className="" src="/chat-logo.webp" alt="" />
+              <img className="" src="/newlogo.jpg" alt="" />
             </Link>
             <nav className="flex flex-1 flex-col">
               <ul role="list" className="flex flex-1 flex-col gap-y-7">
