@@ -82,7 +82,7 @@ const ConnectionList = () => {
         className={`w-full h-12 rounded-l-lg p-2 mt-1 group ${currentConnectionCtx === undefined && "bg-gray-100 dark:bg-zinc-700 shadow"}`}
         onClick={() => connectionStore.setCurrentConnectionCtx(undefined)}
       >
-        <img src="/newlogo.jpg" className="w-7 h-auto mx-auto" alt="" />
+        <img src="/newlogo1.jpg" className="w-7 h-auto mx-auto" alt="" />
       </button>
       {connectionList.map((connection) => (
         <Tooltip key={connection.id} title={connection.title} side="right">
