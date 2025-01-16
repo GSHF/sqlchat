@@ -24,7 +24,7 @@ const QwenApiConfigView = () => {
         <div>
           <div className="mb-1 text-sm font-medium">APP ID</div>
           <input
-            type="text"
+            type="password"
             className="w-full px-2 py-1 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
             value={qwenApiConfig.appId}
             onChange={(e) => handleQwenApiConfigChange("appId", e.target.value)}
@@ -44,7 +44,7 @@ const QwenApiConfigView = () => {
         <div>
           <div className="mb-1 text-sm font-medium">{t("setting.endpoint")}</div>
           <input
-            type="text"
+            type="password"
             className="w-full px-2 py-1 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
             value={qwenApiConfig.endpoint}
             onChange={(e) => handleQwenApiConfigChange("endpoint", e.target.value)}

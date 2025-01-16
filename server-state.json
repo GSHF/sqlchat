@@ -11,12 +11,12 @@
       "id": "ead5b144-424a-4df0-94b1-5db120835dc7",
       "createdAt": "2025-01-12T03:58:06.118Z",
       "metrics": {
-        "successCalls": 12,
+        "successCalls": 14,
         "failedCalls": 0,
         "averageResponseTime": 10,
         "currentConcurrentCalls": 0,
         "maxConcurrentCalls": 1,
-        "totalCalls": 11
+        "totalCalls": 13
       },
       "status": "active"
     },
@@ -99,6 +99,46 @@
         "totalCalls": 0
       },
       "status": "active"
+    },
+    {
+      "name": "bbrr009",
+      "description": "",
+      "url": "/api/sql/breaker;?connectionInfo=zK%2Bw0MnNeyAF7rz50xvsqTwHMi1%2B8n%2FxUHT1%2BnSrdjxvMxmKrltcAvFO6sNvpqMq9Pv3EKzxRfcKK1xWf1WUVwWYIPR9CWZYlyJXwSGJbYMO4w6DpUeH4dfW6BKhtiwxTcCDm6PcbHak39VT1LLOzomSDjGx3wT%2FjxhS4LAaj1IpGZV%2FU2fEvR%2BLYj%2F2%2F%2FDYii2bnlMa33uLSynI5tSZcJvhE4pkQ4sOUUFsDNKz7aomgVkFlXJQdTUe46ximFgHx%2FS2aum31xAeiTm9C22iUw%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
+      "sqlQuery": "SELECT * FROM breaker;",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "breaker;",
+      "database": "tumo",
+      "id": "c3334f14-ed3e-4b9b-95d8-b2a416ea2bef",
+      "createdAt": "2025-01-14T06:25:53.252Z",
+      "metrics": {
+        "successCalls": 0,
+        "failedCalls": 0,
+        "averageResponseTime": 0,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 0,
+        "totalCalls": 0
+      },
+      "status": "active"
+    },
+    {
+      "name": "木ss",
+      "description": "",
+      "url": "/api/sql/breaker;?connectionInfo=JLfhO4Xva2uaFN2LMc6Pra%2BiXjt3TDd7lkANqBjFkZ7o6ua46bCotiwk0dM2s0LOHkR6qftG4OitmfRtjjOv8pLFYX2DGoekwRs6jisC2%2BwoJni1xslh9sznJ8Ncduy0IIUznw%2Bc6zgHK2E38CotdP08jbOsaPGnTZ%2FIf3l68ZKTLLXIS3MCFOXUnJyDuf%2BNtDdgewGJqodHwKfT1kQKPIk%2BePClqBmvYRMs9EU3eRYC5h6OF5H0OPuI6DDUTy4LBiHdnUcmi70fZFLOjftNiQ%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
+      "sqlQuery": "SELECT * FROM breaker;",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "breaker;",
+      "database": "tumo",
+      "id": "f8fa845d-b3f2-44c2-9268-4748d7eea8d4",
+      "createdAt": "2025-01-16T00:57:41.663Z",
+      "metrics": {
+        "successCalls": 0,
+        "failedCalls": 0,
+        "averageResponseTime": 0,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 0,
+        "totalCalls": 0
+      },
+      "status": "inactive"
     }
   ]
 }

@@ -9,6 +9,7 @@ const nextConfig = {
     forceSwcTransforms: true,
     swcTraceProfiling: false,
   },
+  output: 'standalone',
   images: {
     unoptimized: true,
   },
@@ -32,7 +33,7 @@ const nextConfig = {
       };
     }
     return config;
-  },
-};
+  }
+}
 
 module.exports = nextConfig;

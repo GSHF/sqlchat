@@ -8,7 +8,7 @@ const systemDatabases = ["information_schema", "mysql", "performance_schema", "s
 const getMySQLConnection = async (connection: Connection): Promise<mysql.Connection> => {
   console.log("Creating MySQL connection for:", connection.host);
   const conn = await mysql.createConnection({
-    host: connection.host,
+    host: connection.host,  // 优先使用环境变量中的主机名
     port: Number(connection.port),
     user: connection.username,
     password: connection.password,
