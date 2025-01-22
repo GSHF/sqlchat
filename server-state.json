@@ -1,0 +1,44 @@
+{
+  "apis": [
+    {
+      "name": "木ss",
+      "description": "",
+      "url": "/api/sql/breaker;?connectionInfo=JLfhO4Xva2uaFN2LMc6Pra%2BiXjt3TDd7lkANqBjFkZ7o6ua46bCotiwk0dM2s0LOHkR6qftG4OitmfRtjjOv8pLFYX2DGoekwRs6jisC2%2BwoJni1xslh9sznJ8Ncduy0IIUznw%2Bc6zgHK2E38CotdP08jbOsaPGnTZ%2FIf3l68ZKTLLXIS3MCFOXUnJyDuf%2BNtDdgewGJqodHwKfT1kQKPIk%2BePClqBmvYRMs9EU3eRYC5h6OF5H0OPuI6DDUTy4LBiHdnUcmi70fZFLOjftNiQ%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
+      "sqlQuery": "SELECT * FROM breaker;",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "breaker;",
+      "database": "tumo",
+      "id": "f8fa845d-b3f2-44c2-9268-4748d7eea8d4",
+      "createdAt": "2025-01-16T00:57:41.663Z",
+      "metrics": {
+        "successCalls": 0,
+        "failedCalls": 0,
+        "averageResponseTime": 0,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 0,
+        "totalCalls": 0
+      },
+      "status": "inactive"
+    },
+    {
+      "name": "sss",
+      "description": "",
+      "url": "/api/sql/data_iris;?connectionInfo=M5gNMtey4XlElQu8wSacx2PLkXGy7UlNQFG0o%2BCfGRpsCvPbLWNdoR%2FCz%2FbCYm3EgNv1LpuThOClJEoMzU60cbHBPQV7llCZdxyv6F9ms%2Bp7cVyoddhiuN0RAzQj4tirLxDSfAfMxNkKnyX2Kp7hs%2FIspd%2FpPllAhRnWlvtb1bedSd5FgMvYEunsTnYx69410stJwWejgJLFazba1UlKSPWJnzRa2yiYtmlpJml9qZzvcfpLdUe7Ff%2BZbNZkG7ZmyXGES9mjkQLz6KdCCoryNw%3D%3D&query=SELECT%20DISTINCT%20species%0AFROM%20data_iris%3B",
+      "sqlQuery": "SELECT DISTINCT species\nFROM data_iris;",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "data_iris;",
+      "database": "tumo",
+      "id": "87459dd1-2952-43a6-b88d-67dd7d2955ba",
+      "createdAt": "2025-01-22T07:34:05.021Z",
+      "metrics": {
+        "successCalls": 1,
+        "failedCalls": 0,
+        "averageResponseTime": 10,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 1,
+        "totalCalls": 0
+      },
+      "status": "active"
+    }
+  ]
+}
