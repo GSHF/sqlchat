@@ -78,9 +78,16 @@ export const ApiPublishModal: React.FC<Props> = ({
         ...connection,
         database: selectedDatabase
       };
+      // 使用相对路径，避免硬编码 URL
+      const registerUrl = '/api/vulcan/register';
+      console.log('API Registration Attempt:', {
+        registerUrl,
+        NODE_ENV: process.env.NODE_ENV,
+        DOCKER_CONTAINER: process.env.DOCKER_CONTAINER
+      });
 
       // 发送到服务器注册API
-      const response = await fetch('/api/vulcan/register', {
+      const response = await fetch(registerUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

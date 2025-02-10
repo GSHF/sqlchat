@@ -95,6 +95,10 @@ const handler = async (req: NextRequest) => {
       const userQuestion = reqBody.messages[reqBody.messages.length - 1].content;
       console.log('[Chat] User question:', userQuestion);
 
+      // 保留最近的3条消息作为上下文
+      // const recentMessages = reqBody.messages.slice(-3);
+      // console.log('[Chat] Recent messages:', recentMessages);
+
       // 调用 enhance-prompt API 获取增强的 prompt
       console.log('[Chat] Calling enhance-prompt API...');
       const enhanceRes = await fetch(new URL("/api/enhance-prompt", req.headers.get("origin") || "").toString(), {
@@ -131,6 +135,7 @@ const handler = async (req: NextRequest) => {
           role: "system",
           content: enhancedPrompt
         },
+        // ...recentMessages, // 添加最近的消息历史
         {
           role: "user",
           content: userQuestion

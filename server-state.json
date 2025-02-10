@@ -1,15 +1,15 @@
 {
   "apis": [
     {
-      "name": "木ss",
+      "name": "rrrrss",
       "description": "",
-      "url": "/api/sql/breaker;?connectionInfo=JLfhO4Xva2uaFN2LMc6Pra%2BiXjt3TDd7lkANqBjFkZ7o6ua46bCotiwk0dM2s0LOHkR6qftG4OitmfRtjjOv8pLFYX2DGoekwRs6jisC2%2BwoJni1xslh9sznJ8Ncduy0IIUznw%2Bc6zgHK2E38CotdP08jbOsaPGnTZ%2FIf3l68ZKTLLXIS3MCFOXUnJyDuf%2BNtDdgewGJqodHwKfT1kQKPIk%2BePClqBmvYRMs9EU3eRYC5h6OF5H0OPuI6DDUTy4LBiHdnUcmi70fZFLOjftNiQ%3D%3D&query=SELECT%20*%20FROM%20breaker%3B",
-      "sqlQuery": "SELECT * FROM breaker;",
+      "url": "/api/sql/voltagelevel\nwhere?connectionInfo=jdu60%2F%2FYdIgfFKOhn8R9pZ0NOL56MqO%2B%2BNXH8dKssCrJ5YBc9rqpYUlGey8u1n6inmT0ONWofEODUKCBfZgx1da8VJcX9jzQ2PWi7xgvfn2iNNXnsaEWJiOVSWRRW%2FVB6CRBAPDwKMqPTJggDGcDjkLhrIdkoItuoK9qaT8IDJ7D5zAgnOP7sdEBYiZuFflAoU4Tt%2BJWWp5SZrSOz1f3KZohrJTyx2VZ7ZW0UfG4gZ0mn6qdeGPWvyBodV0DS9X3VxkyMbBJUgaChZeWedhlBA%3D%3D&query=SELECT%20*%0AFROM%20voltagelevel%0AWHERE%20cgroup%20%3D%20'4725'%3B",
+      "sqlQuery": "SELECT *\nFROM voltagelevel\nWHERE cgroup = '4725';",
       "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
-      "tableName": "breaker;",
+      "tableName": "voltagelevel\nwhere",
       "database": "tumo",
-      "id": "f8fa845d-b3f2-44c2-9268-4748d7eea8d4",
-      "createdAt": "2025-01-16T00:57:41.663Z",
+      "id": "229cb9c4-7132-4210-85cf-621bec346fb3",
+      "createdAt": "2025-02-08T10:57:18.305Z",
       "metrics": {
         "successCalls": 0,
         "failedCalls": 0,
@@ -18,24 +18,84 @@
         "maxConcurrentCalls": 0,
         "totalCalls": 0
       },
-      "status": "inactive"
+      "status": "active"
     },
     {
-      "name": "sss",
+      "name": "ssrrr",
       "description": "",
-      "url": "/api/sql/data_iris;?connectionInfo=M5gNMtey4XlElQu8wSacx2PLkXGy7UlNQFG0o%2BCfGRpsCvPbLWNdoR%2FCz%2FbCYm3EgNv1LpuThOClJEoMzU60cbHBPQV7llCZdxyv6F9ms%2Bp7cVyoddhiuN0RAzQj4tirLxDSfAfMxNkKnyX2Kp7hs%2FIspd%2FpPllAhRnWlvtb1bedSd5FgMvYEunsTnYx69410stJwWejgJLFazba1UlKSPWJnzRa2yiYtmlpJml9qZzvcfpLdUe7Ff%2BZbNZkG7ZmyXGES9mjkQLz6KdCCoryNw%3D%3D&query=SELECT%20DISTINCT%20species%0AFROM%20data_iris%3B",
-      "sqlQuery": "SELECT DISTINCT species\nFROM data_iris;",
+      "url": "/api/sql/voltagelevel\nwhere?connectionInfo=Q2KmmQqWHbNXOiFCCdQcG1oOjALm%2BG3VuuAuvMJrDl01qoB2oqMttNJDyveg4fxutOtoE0YGc1WJHV%2BW4t1llnJUaCPh2xvkdXOdFDbBTPJKHibWzWY%2Bab%2Bmmey%2FiR5%2FzUOg%2Bce9%2BakLRXTcF4AMejRvpdHgsjNpi%2BHUNXFCBmzdal4JXQTecixVXsWeO48EMS8maE8uOUvqsNygQok8xlgYvzuOb2bMqMKYeYKKsj4b0UwQeE05LLtSJpW4yL6XzwRLB8nftxZRal33j%2BsRdw%3D%3D&query=SELECT%20*%0AFROM%20voltagelevel%0AWHERE%20cgroup%20%3D%20'4725'%3B",
+      "sqlQuery": "SELECT *\nFROM voltagelevel\nWHERE cgroup = '4725';",
       "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
-      "tableName": "data_iris;",
+      "tableName": "voltagelevel\nwhere",
       "database": "tumo",
-      "id": "87459dd1-2952-43a6-b88d-67dd7d2955ba",
-      "createdAt": "2025-01-22T07:34:05.021Z",
+      "id": "d1e96eae-9885-438e-89e6-35d18715d0fd",
+      "createdAt": "2025-02-08T11:01:24.170Z",
+      "metrics": {
+        "successCalls": 0,
+        "failedCalls": 0,
+        "averageResponseTime": 0,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 0,
+        "totalCalls": 0
+      },
+      "status": "active"
+    },
+    {
+      "name": "sssrrr",
+      "description": "",
+      "url": "/api/sql/voltagelevelwhere?connectionInfo=2MevIEFzJBSkIICG1DKrS5uToD28ulgITpUd0kJ%2BqOSND4j95sxy5ofBYFnbwBfczduOV7lZTjaadw8D9SkFyZyivyEg%2FZy9ymiWhiQaJAweO1xQLz6f4uOVbHyWNXaJB4iIiFS60FCSgRhsvHlN7BE7JrTpZ%2B46VgR5XymfRZKLPZYOEtQ0Ds01Yemx4LJc36cwcvsPQz1xJ2K2fCimoRCkzP5Jl1nlbm93iE%2BDEYva6aY9ddPwlho%2B00wBrV25kvh3z%2BBF1%2BRSUGLI7%2BNDsQ%3D%3D&query=SELECT%20*%0AFROM%20voltagelevel%0AWHERE%20cgroup%20%3D%20'4725'%3B",
+      "sqlQuery": "SELECT * FROM voltagelevel WHERE cgroup = '4725';",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "voltagelevel\nwhere",
+      "database": "tumo",
+      "id": "37a65984-5540-4124-9271-9d20c9ec836d",
+      "createdAt": "2025-02-08T11:23:06.761Z",
+      "metrics": {
+        "successCalls": 3,
+        "failedCalls": 0,
+        "averageResponseTime": 12,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 1,
+        "totalCalls": 2
+      },
+      "status": "active"
+    },
+    {
+      "name": "minx",
+      "description": "",
+      "url": "/api/sql/voltagelevel;?connectionInfo=7mSle6sZtI6uIFCeUYu7%2F0UPcIhcqlf09OCvQ%2B5QmWRvsCz8WiBvIkQb%2B%2FjDryAgg21NxgrOJP0f2ShLasJL7bFGPx6rsM7xS9PUbbD55%2FykzCAUyhEgJ3rjQmnYDO3%2BqKP5DO1UwQFAYpqrojEIXa%2BjIKmXgFq%2FQTJHVlAE8ei8%2F7jq3hC6a5ejJdGcDT8UsRBmlHpwdJOPAUUkSVYe3WFSJqEciHKigmvTVFel%2Be9PKa2Ybd51%2BjtwTSOiLzLqRL3QCYV2T28w0XUGGkbl3g%3D%3D&query=SELECT%20*%0AFROM%20voltagelevel%3B",
+      "sqlQuery": "SELECT * FROM voltagelevel;",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "voltagelevel;",
+      "database": "tumo",
+      "id": "8affe9ab-8e15-4b0b-8ff7-c5f36f659838",
+      "createdAt": "2025-02-08T11:24:04.103Z",
       "metrics": {
         "successCalls": 1,
         "failedCalls": 0,
-        "averageResponseTime": 10,
+        "averageResponseTime": 7,
         "currentConcurrentCalls": 0,
         "maxConcurrentCalls": 1,
+        "totalCalls": 0
+      },
+      "status": "active"
+    },
+    {
+      "name": "2312",
+      "description": "",
+      "url": "/api/sql/voltagelevelwhere?connectionInfo=7RRjxPVvVW%2Bnre42ShIlDs%2Fv3%2B%2FJe3SBXvgS9IHeAWltpangNUVTNX3dfVzX3hib%2FFTj%2BIWKRaYySBLPNLEsit7iXOSW9ydp8kMvfec%2Bu7MGtKuEeV3OHTkX1ASLEw7jdgcmfafdhZxUA9A9fnGWw3NOGaEAbfjWfzEnpvRJhiAIbmCfvoc245VzbRQoMdaTZrfExjs4tudo3EcydtrhtptH9oIN%2BA%2FysQucPFjdNHVF9mHLQacmN7L3WTB%2BE7SMIKpPj6DxGE1DQvYQiE%2FXqA%3D%3D&query=SELECT%20*%0AFROM%20voltagelevel%0AWHERE%20cgroup%20%3D%20'4725'%3B",
+      "sqlQuery": "SELECT * FROM voltagelevel WHERE cgroup = '4725';",
+      "connectionId": "{\"id\":\"9952a987-2816-43d4-b1c7-3ba4f72812d4\",\"title\":\"datavines001\",\"engineType\":\"MYSQL\",\"host\":\"localhost\",\"port\":\"3306\",\"username\":\"root\",\"password\":\"Gdp7866488\",\"database\":\"tumo\"}",
+      "tableName": "voltagelevel\nwhere",
+      "database": "tumo",
+      "id": "bfc46233-06ee-4657-81fa-4119884ea0a0",
+      "createdAt": "2025-02-08T11:24:29.909Z",
+      "metrics": {
+        "successCalls": 0,
+        "failedCalls": 0,
+        "averageResponseTime": 0,
+        "currentConcurrentCalls": 0,
+        "maxConcurrentCalls": 0,
         "totalCalls": 0
       },
       "status": "active"

@@ -22,8 +22,8 @@ export const getConnectionInstance = async (connection: Connection): Promise<Dat
       case Engine.MySQL:
         const mysql = await import('mysql2/promise');
         connectionInstance = await mysql.createConnection({
-          host: connection.host,
-          port: parseInt(connection.port),
+          host: process.env.DB_HOST || connection.host, // 使用环境变量
+          port: parseInt(process.env.DB_PORT || connection.port),
           user: connection.username,
           password: connection.password,
           database: connection.database,

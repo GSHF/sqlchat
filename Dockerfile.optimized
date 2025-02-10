@@ -54,6 +54,11 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV DOCKER_CONTAINER=true
+# 在 ENV 部分添加
+# ENV DEBUG=*
+# ENV VERBOSE=true
+ENV HOST=0.0.0.0
+# ENV NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
 
 # 安装生产环境必需的系统依赖
 RUN apk add --no-cache \
@@ -82,7 +87,7 @@ RUN cd /app && \
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NEXTAUTH_SECRET=c8350c0bc49c8a1a0e7c9a83a0e6c5c1e2c0b9d8f4a7e3b1d6c9a2f5e8d7b4a
-ENV NEXTAUTH_URL=http://localhost:3000
+# ENV NEXTAUTH_URL=http://localhost:3000
 # 使用环境变量来配置数据库主机
 ENV DB_HOST="host.docker.internal"
 
@@ -95,3 +100,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 
 # 启动应用
 CMD ["node", "server.js"]
+# CMD ["node", "--trace-warnings", "--trace-deprecation", "server.js"]

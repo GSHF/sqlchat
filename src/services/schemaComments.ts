@@ -18,12 +18,20 @@ interface ColumnInfo extends RowDataPacket {
 }
 
 export class SchemaCommentsService {
+  private static instance: SchemaCommentsService;
   private commentCache: Map<string, SchemaWithComments[]>;
   private cacheDuration: number;
 
-  constructor() {
+  private constructor() {
     this.commentCache = new Map();
     this.cacheDuration = 5 * 60 * 1000; // 5 minutes
+  }
+
+  public static getInstance(): SchemaCommentsService {
+    if (!SchemaCommentsService.instance) {
+      SchemaCommentsService.instance = new SchemaCommentsService();
+    }
+    return SchemaCommentsService.instance;
   }
 
   private getCacheKey(connection: Connection, database: string): string {

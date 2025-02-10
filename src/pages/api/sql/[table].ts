@@ -6,8 +6,11 @@ import { withAPIStatusCheck } from "@/middleware/apiStatusCheck";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
   try {
-    // 移除URL中的分号
-    const tableName = (req.query.table as string).replace(/;/g, '');
+    // 移除URL中的分号，并且确保没有空格
+    const tableName = (req.query.table as string)
+      .replace(/;/g, '')
+      .replace(/\s+/g, '')  // 移除所有空格
+      .trim();
     console.log('Processing request for table:', tableName);
     
     if (req.method === 'GET') {

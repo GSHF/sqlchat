@@ -26,8 +26,15 @@ type APIStore = APIState & APIActions;
 let serverState: APIStore = {
   apis: [],
   addAPI: (api) => {
-    const newApi: PublishedAPI = {
+    // 规范化 sqlQuery 和 url
+    const normalizedApi = {
       ...api,
+      sqlQuery: api.sqlQuery.replace(/\n/g, ' ').trim(),
+      url: api.url.replace(/\n/g, '').trim()
+    };
+
+    const newApi: PublishedAPI = {
+      ...normalizedApi,
       id: generateUUID(),
       createdAt: new Date(),
       metrics: {
@@ -207,8 +214,15 @@ const createStore = () => {
 
         apis: [],
         addAPI: (api) => {
-          const newApi: PublishedAPI = {
+          // 规范化 sqlQuery 和 url
+          const normalizedApi = {
             ...api,
+            sqlQuery: api.sqlQuery.replace(/\n/g, ' ').trim(),
+            url: api.url.replace(/\n/g, '').trim()
+          };
+
+          const newApi: PublishedAPI = {
+            ...normalizedApi,
             id: generateUUID(),
             createdAt: new Date(),
             metrics: {

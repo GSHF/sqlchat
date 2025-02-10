@@ -164,7 +164,7 @@ const handler = async (req: NextRequest) => {
     const config = isInternalNetwork ? INTERNAL_QWEN_CONFIG : EXTERNAL_QWEN_CONFIG;
 
     // 直接使用传入的消息
-    const messages = reqBody.messages;
+    const messages = reqBody.messages.length > 3 ? reqBody.messages.slice(-3) : reqBody.messages;  // 如果消息数少于3条，则保留全部
     console.log('[Qwen] Using messages:', JSON.stringify(messages, null, 2));
 
     // 构建请求体
@@ -174,7 +174,7 @@ const handler = async (req: NextRequest) => {
       model: isInternalNetwork ? "rsv-8h619k0x" : "qwen-72b-v2.5",
       version: isInternalNetwork ? "default" : "v2.5",
       stream: false,
-      max_tokens: 2048,
+      max_tokens: 2048, // 增加内网模式的token限制
       enableDoc: false,
       enableBI: false,
       enablePlugin: false,
