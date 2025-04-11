@@ -86,10 +86,10 @@ const DEFAULT_TIMEOUT = 60000;
 
 // 内网通义千问配置
 const INTERNAL_QWEN_CONFIG = {
-  model: "rsv-8h619k0x",
+  model: "qwen-72b",
   version: "default",
-  appId: "8fb1bd5df3b24265bcfff855652e3c9a",
-  secretKey: "41514d28b825409468b0241dc4a672ab",
+  appId: "d063dc4e83a949368067353a4edda225",
+  secretKey: "fe31d0dfd0d7630309d5fcb74ddf511f",
   endpoint: "http://25.41.34.249:8008/api/ai/qwen/72b/chat",
 };
 
@@ -243,17 +243,21 @@ const handler = async (req: NextRequest) => {
       const responseText = await response.text();
       console.log("Raw Response Text:", responseText);
 
-      const responseData = JSON.parse(responseText);
+      let lines = responseText.trim().split('\n');
+      let lastLine = lines[lines.length - 1];
+      if (lastLine.startsWith('data:')) {
+        lastLine = lastLine.substring(5);
+      }
+      const responseData = JSON.parse(lastLine);
       console.log("Parsed Response:", responseData);
 
-      // 检查响应状态
-      if (responseData.status_code && responseData.status_code !== "SUCCESS") {
+      // 检查响应是否包含有效内容
+      if (!responseData.choices || !responseData.choices[0]) {
         return new Response(
           JSON.stringify({
             error: {
-              message: responseData.message?.content || "API返回错误状态",
+              message: "API返回无效响应格式",
               type: "api_error",
-              status_code: responseData.status_code,
             },
           }),
           { status: 400 },
@@ -261,7 +265,7 @@ const handler = async (req: NextRequest) => {
       }
 
       // 处理响应中的SQL语句，添加必要的限制
-      let processedContent = responseData.message.content;
+      let processedContent = responseData.choices[0].message.content;
       
       // 只在内网环境下处理 SQL
       if (isInternalNetwork) {
@@ -309,9 +313,9 @@ const handler = async (req: NextRequest) => {
           role: "assistant",
         },
         usage: {
-          prompt_tokens: responseData.prompt_tokens || 0,
-          completion_tokens: responseData.completion_tokens || 0,
-          total_tokens: responseData.total_tokens || 0,
+          prompt_tokens: responseData.usage?.prompt_tokens || 0,
+          completion_tokens: responseData.usage?.completion_tokens || 0,
+          total_tokens: responseData.usage?.total_tokens || 0,
         },
       };
 
